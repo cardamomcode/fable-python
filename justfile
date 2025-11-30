@@ -45,7 +45,7 @@ blogpost: build
     # First chapter keeps original header levels (has the title)
     uv run python output/tools/fabletext.py chapters/01-introduction.fs > docs/blogpost.md
     # Remaining chapters get headers increased by one level
-    for f in chapters/02-*.fs chapters/03-*.fs chapters/04-*.fs; do
+    for f in chapters/02-*.fs chapters/03-*.fs chapters/04-*.fs chapters/05-*.fs chapters/06-*.fs; do
         echo "" >> docs/blogpost.md
         uv run python output/tools/fabletext.py --increase-headers "$f" >> docs/blogpost.md
     done

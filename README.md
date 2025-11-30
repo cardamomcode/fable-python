@@ -10,6 +10,8 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 2. **Getting Started** - Setup, your first project, hello world
 3. **Bindings** - Python interop and type bindings
 4. **Compatibility** - Supported F# features and limitations
+5. **Fable v5** - What's new in Fable v5 for Python
+6. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
 
 ## The Meta Twist
 
@@ -51,7 +53,9 @@ chapters/
 ├── 01-introduction.fs      # What is Fable.Python
 ├── 02-getting-started.fs   # Setup and first project
 ├── 03-bindings.fs          # Python interop
-└── 04-compatibility.fs     # F# feature support
+├── 04-compatibility.fs     # F# feature support
+├── 05-fable-v5.fs          # What's new in Fable v5
+└── 06-pydantic.fs          # Pydantic interop
 tools/
 ├── fabletext.fs            # Fabletext converter (F#)
 └── fabletext.fsproj
