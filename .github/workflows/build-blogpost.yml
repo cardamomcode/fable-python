@@ -58,3 +58,5 @@ jobs:
           body: "This PR updates the blogpost with the latest changes."
           branch: "update-blogpost"
           delete-branch: true
+          add-paths: |
+            docs/
