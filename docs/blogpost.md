@@ -596,3 +596,222 @@ Fable.Python provides excellent F# support. The main things to watch for are:
 
 For most F# code, you can write idiomatic functional code and it will
 compile to clean, working Python.
+
+## Fable v5: What's New
+
+Fable v5 brings significant improvements to the Python target, with a focus on
+correctness, modern Python support, and better interoperability.
+
+### .NET 10 and F# 9.0 Support
+
+Fable v5 uses native MSBuild for parsing projects instead of Buildalyzer.
+This avoids creating fake .csproj files which could confuse IDEs.
+
+Key improvements include:
+
+- **Nullable Reference Types** - F# 9's compile-time null-safety
+- **Many BCL additions** - Expanded .NET Base Class Library support
+- **63 bug fixes** - Improved stability across all targets
+- **300+ new tests** - Ensuring reliability
+
+### Python Target Highlights
+
+The Python target has received special attention in v5:
+
+- **Python 3.12-3.14 support** (3.10/3.11 are deprecated)
+- **fable-library via PyPI** - No more bundled runtime files
+- **Modern type parameter syntax** - Better type hinting in generated code
+- **`Py.Decorate` attribute** - Add Python decorators from F#
+- **`Py.ClassAttributes` attribute** - Fine-grained class generation control
+- **Improved Pydantic interop** - First-class support for data validation
+
+### Rust Core with PyO3
+
+One of the biggest changes is that the core of fable-library is now written
+in **Rust** using PyO3. This isn't primarily for performance - it's for
+**correctness**:
+
+#### Why Rust?
+
+- **Correct .NET semantics** - Sized/signed integers (int8, int16, int32, int64, uint8, etc.)
+- **Proper overflow behavior** - Matches .NET exactly
+- **Fixed-size arrays** - No more Python list quirks for byte streams
+- **Reliable numerics** - Fable 4's pure Python numerics were a constant source of bugs
+
+### fable-library via PyPI
+
+Before Fable v5, the runtime was bundled in the NuGet package and copied
+to your output directory. Now it's a simple pip/uv dependency:
+
+```bash
+# Install with pip
+pip install fable-library
+
+# Or with uv (recommended)
+uv add fable-library
+```
+
+This makes dependency management much simpler and follows Python conventions.
+
+### Test Coverage
+
+Fable v5 significantly increased test coverage across all targets:
+
+| Target         | Fable 4.9 | Fable 5 | Increase     |
+| -------------- | --------- | ------- | ------------ |
+| **JavaScript** | 2,589     | 2,748   | +159 (+6%)   |
+| **Python**     | 1,880     | 1,974   | +94 (+5%)    |
+| **Rust**       | 2,118     | 2,184   | +66 (+3%)    |
+
+That's **319 new tests** ensuring reliability across the board.
+
+### Getting Started with Fable v5
+
+To use Fable v5, install the alpha CLI:
+
+```bash
+# Install Fable 5 CLI
+dotnet tool install fable --version 5.0.0-alpha.17
+
+# Add Fable.Core to your project
+dotnet add package Fable.Core --version 5.0.0-beta.2
+
+# Install the Python runtime
+uv add fable-library==5.0.0a17
+```
+
+Then compile your F# to Python:
+
+```bash
+dotnet fable YourProject.fsproj --lang python -o output/
+```
+
+The generated Python code will be modern, type-hinted, and ready to run!
+
+## Pydantic Interop
+
+[Pydantic](https://docs.pydantic.dev/) is Python's most popular data validation
+library. Fable v5 introduces new attributes that make F# and Pydantic work
+together seamlessly.
+
+### The Decorator Attribute
+
+The `Py.Decorator` attribute lets you add Python decorators to F# types:
+
+```fsharp
+
+[<Py.Decorate("dataclasses.dataclass")>]
+type Person = {
+    Name: string
+    Age: int
+}
+
+```
+
+This generates:
+
+```python
+@dataclasses.dataclass
+class Person:
+    name: str
+    age: int32
+```
+
+The decorator is applied directly to the generated Python class!
+
+### Decorator with Parameters
+
+You can also pass parameters to decorators:
+
+```fsharp
+
+[<Py.Decorate("dataclasses.dataclass", "frozen=True, slots=True")>]
+type Point = {
+    X: float
+    Y: float
+}
+
+```
+
+This generates:
+
+```python
+@dataclasses.dataclass(frozen=True, slots=True)
+class Point:
+    x: float
+    y: float
+```
+
+The `frozen=True` makes instances immutable (matching F# record semantics),
+and `slots=True` optimizes memory usage.
+
+### ClassAttributes for Pydantic
+
+The `Py.ClassAttributes` attribute controls how class members are generated,
+which is essential for Pydantic compatibility:
+
+```fsharp
+
+[<Import("BaseModel", "pydantic")>]
+type BaseModel () = class end
+
+[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes)>]
+type PydanticUser() =
+    inherit BaseModel()
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
+    member val Email: string option = None with get, set
+
+```
+
+This generates clean Pydantic code:
+
+```python
+from pydantic import BaseModel
+
+class PydanticUser(BaseModel):
+    Name: str = ""
+    Age: int = 0
+    Email: str | None = None
+```
+
+You get all of Pydantic's features:
+
+- **Automatic validation** - Type checking at runtime
+- **Serialization** - JSON/dict conversion built-in
+- **Schema generation** - OpenAPI/JSON Schema support
+- **IDE support** - Full autocomplete and type hints
+
+### Why This Matters
+
+This interop enables powerful patterns:
+
+1. **Define models in F#** with full type safety and pattern matching
+2. **Generate Python classes** that integrate with the Python ecosystem
+3. **Use Pydantic validation** in FastAPI, LangChain, and other frameworks
+4. **Publish to PyPI** - Your F# types become Python packages
+
+### F# Option to Python Union
+
+Notice how `string option` becomes `str | None` in Python. Fable v5 uses
+modern Python union syntax for optional types, making the generated code
+feel native to Python developers.
+
+### Example: FastAPI Integration
+
+These Pydantic models can be used directly with FastAPI:
+
+```python
+from fastapi import FastAPI
+from your_fsharp_module import PydanticUser
+
+app = FastAPI()
+
+@app.post("/users")
+def create_user(user: PydanticUser) -> PydanticUser:
+    # Pydantic validates the request automatically
+    return user
+```
+
+You get the best of both worlds: F#'s type safety during development,
+and Python's rich ecosystem at runtime.
