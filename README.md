@@ -12,6 +12,7 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 4. **Compatibility** - Supported F# features and limitations
 5. **Fable v5** - What's new in Fable v5 for Python
 6. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
+7. **Units of Measure** - Compile-time dimensional analysis
 
 ## The Meta Twist
 
@@ -55,7 +56,8 @@ chapters/
 ├── 03-bindings.fs          # Python interop
 ├── 04-compatibility.fs     # F# feature support
 ├── 05-fable-v5.fs          # What's new in Fable v5
-└── 06-pydantic.fs          # Pydantic interop
+├── 06-pydantic.fs          # Pydantic interop
+└── 07-units-of-measure.fs  # Dimensional analysis
 tools/
 ├── fabletext.fs            # Fabletext converter (F#)
 └── fabletext.fsproj

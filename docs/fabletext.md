@@ -1,4 +1,3 @@
-(**
 # Fabletext
 
 A literate programming converter inspired by [jupytext](https://github.com/mwouts/jupytext)
@@ -15,16 +14,11 @@ The converter is a simple state machine that processes input line by line:
 - F# code outside those blocks is wrapped in fenced code blocks
 - `(*** hide ***)` sections are excluded from output
 
-*)
-
-(*** hide ***)
-open Fable.Core
-
-(**
 ## Parser State
 
 We track three possible states as we scan through the file:
-*)
+
+```fsharp
 
 /// Represents the current state of the parser state machine.
 type ParserState =
@@ -35,11 +29,13 @@ type ParserState =
     /// Hidden section after (*** hide ***), content is skipped
     | Hidden
 
-(**
+```
+
 ## Line Classification
 
 Each line is classified to determine how to handle it:
-*)
+
+```fsharp
 
 /// Classification of a source line for the parser.
 type LineType =
@@ -60,11 +56,13 @@ let classifyLine (line: string) : LineType =
     elif trimmed = "*)" then MarkdownEnd
     else ContentLine
 
-(**
+```
+
 ## State Transitions
 
 The heart of the parser - handling transitions between states:
-*)
+
+```fsharp
 
 /// The parsing context that tracks state, buffered code, and output.
 type ParseContext = {
@@ -156,11 +154,13 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
     | InMarkdown, MarkdownStart -> ctx
     | InCode, MarkdownEnd -> ctx
 
-(**
+```
+
 ## Processing a File
 
 Read all lines, process them, and return the Markdown output:
-*)
+
+```fsharp
 
 /// Processes all lines from a literate F# file and returns the Markdown output.
 let processLines (lines: string seq) : string =
@@ -172,12 +172,14 @@ let processLines (lines: string seq) : string =
     |> List.rev
     |> String.concat ""
 
-(**
+```
+
 ## Header Level Adjustment
 
 For concatenating multiple chapters into a single document, we need to
 increase header levels (# becomes ##, ## becomes ###, etc.):
-*)
+
+```fsharp
 
 /// Increases all markdown header levels by one (# becomes ##, etc.).
 /// Preserves headers inside fenced code blocks.
@@ -197,11 +199,13 @@ let adjustHeaderLevels (markdown: string) : string =
             line)
     |> String.concat "\n"
 
-(**
+```
+
 ## Python File I/O
 
 For Fable.Python, we use Python's file operations:
-*)
+
+```fsharp
 
 /// Reads the entire contents of a file as a string.
 [<Emit("open($0, 'r').read()")>]
@@ -211,11 +215,13 @@ let readFile (path: string) : string = nativeOnly
 [<Emit("print($0, end='')")>]
 let printRaw (s: string) : unit = nativeOnly
 
-(**
+```
+
 ## Main Entry Point
 
 Read the input file, convert it, and print the result:
-*)
+
+```fsharp
 
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
@@ -239,7 +245,8 @@ let main (args: string[]) =
         printRaw output
         0
 
-(**
+```
+
 ## Building and Running
 
 ```bash
@@ -251,4 +258,3 @@ python output/tools/fabletext.py chapters/01-introduction.fs > docs/01-introduct
 ```
 
 That's it! A complete literate programming converter in under 200 lines of F#.
-*)

@@ -17,6 +17,7 @@
     <Compile Include="chapters/04-compatibility.fs" />
     <Compile Include="chapters/05-fable-v5.fs" />
     <Compile Include="chapters/06-pydantic.fs" />
+    <Compile Include="chapters/07-units-of-measure.fs" />
   </ItemGroup>
 
 </Project>
