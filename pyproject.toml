@@ -1,0 +1,18 @@
+[project]
+name = "fable-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [
+    {name = "Dag Brattli", email = "dag@brattli.net"},
+]
+license = {text = "ISC"}
+dependencies = [
+    "fable-library==5.0.0a17",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.7",
+]

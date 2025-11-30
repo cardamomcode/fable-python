@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fable.Core" Version="5.0.0-beta.2" />
+    <PackageReference Include="Fable.Python" Version="4.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="fabletext.fs" />
+  </ItemGroup>
+
+</Project>

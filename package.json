@@ -1,0 +1,27 @@
+{
+  "name": "fable-python",
+  "version": "1.0.0",
+  "description": "> Write F#, run Python - a practical guide to Fable.Python",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cardamomcode/fable-python.git"
+  },
+  "keywords": [],
+  "author": "Dag Brattli",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cardamomcode/fable-python/issues"
+  },
+  "homepage": "https://github.com/cardamomcode/fable-python#readme",
+  "devDependencies": {
+    "markdownlint-cli": "^0.46.0"
+  }
+}

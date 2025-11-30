@@ -1,0 +1,60 @@
+name: Build and Deploy Blogpost
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install uv
+        run: pipx install uv
+
+      - name: Install just
+        uses: extractions/setup-just@v2
+
+      - name: Install dependencies
+        run: |
+          just setup
+          just restore
+          npm ci
+
+      - name: Build and generate blogpost
+        run: |
+          just build
+          just blogpost
+          just format
+
+      - name: Lint
+        run: just lint
+
+      - name: Open Pull Request
+        if: github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "docs: generate blogpost file ${{ github.run_number }}"
+          title: "docs: blogpost update"
+          body: "This PR updates the blogpost with the latest changes."
+          branch: "update-blogpost"
+          delete-branch: true

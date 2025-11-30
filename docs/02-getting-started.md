@@ -1,0 +1,105 @@
+# Getting Started with Fable.Python
+
+Let's set up a Fable.Python project from scratch and get our first F# code
+running as Python.
+
+## Prerequisites
+
+You'll need:
+
+- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later)
+- [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
+
+## Project Setup
+
+Create a new directory and initialize an F# project:
+
+```bash
+mkdir my-fable-python
+cd my-fable-python
+
+# Create F# console app
+dotnet new console -lang F#
+
+# Set up local tools and install Fable 5 (alpha)
+dotnet new tool-manifest
+dotnet tool install fable --version 5.0.0-alpha.17
+
+# Add Fable.Core package
+dotnet add package Fable.Core --version 5.0.0-beta.2
+```
+
+## Install Python Dependencies
+
+Fable-generated Python code requires the `fable-library` runtime:
+
+```bash
+pip install "fable-library==5.0.0a17"
+```
+
+> **Note:** Version pinning is important! The fable-library version must match
+> your Fable compiler version. PyPI uses `5.0.0a17` format instead of `5.0.0-alpha.17`.
+
+## Your First Program
+
+Replace the contents of `Program.fs` with:
+
+```fsharp
+printfn "Hello from Fable.Python!"
+
+let square x = x * x
+let numbers = [1; 2; 3; 4; 5]
+let squares = numbers |> List.map square
+
+printfn "Squares: %A" squares
+```
+
+## Compile and Run
+
+Transpile to Python:
+
+```bash
+dotnet fable --lang python
+```
+
+This creates `Program.py` in your project directory. Run it:
+
+```bash
+python3 Program.py
+```
+
+You should see:
+
+```text
+Hello from Fable.Python!
+Squares: [1; 4; 9; 16; 25]
+```
+
+## Watch Mode
+
+For development, use watch mode to automatically recompile on changes:
+
+```bash
+dotnet fable watch --lang python
+```
+
+Now any changes to your F# files will instantly produce updated Python output.
+
+## Project Structure
+
+After setup, your project looks like this:
+
+```text
+my-fable-python/
+├── Program.fs          # Your F# source code
+├── Program.py          # Generated Python (don't edit!)
+├── my-fable-python.fsproj
+├── fable_modules/      # Fable runtime modules
+└── .config/
+    └── dotnet-tools.json
+```
+
+## Next Steps
+
+Now that you have a working setup, let's explore how to interact with Python
+libraries in the next chapter on **Bindings**.
