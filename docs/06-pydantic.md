@@ -4,13 +4,13 @@
 library. Fable v5 introduces new attributes that make F# and Pydantic work
 together seamlessly.
 
-## The Decorate Attribute
+## The Decorator Attribute
 
-The `Decorate` attribute lets you add Python decorators to F# types:
+The `Py.Decorator` attribute lets you add Python decorators to F# types:
 
 ```fsharp
 
-[<Py.Decorator("dataclasses.dataclass")>]
+[<Py.Decorate("dataclasses.dataclass")>]
 type Person = {
     Name: string
     Age: int
@@ -29,13 +29,13 @@ class Person:
 
 The decorator is applied directly to the generated Python class!
 
-## ClassAttributes for Fine-Grained Control
+## Decorator with Parameters
 
-For more control over class generation, use `ClassAttributes`:
+You can also pass parameters to decorators:
 
 ```fsharp
 
-[<Py.Decorator("dataclasses.dataclass", "frozen=True, slots=True")>]
+[<Py.Decorate("dataclasses.dataclass", "frozen=True, slots=True")>]
 type Point = {
     X: float
     Y: float
@@ -46,7 +46,7 @@ type Point = {
 This generates:
 
 ```python
-@dataclass(frozen=True, slots=True)
+@dataclasses.dataclass(frozen=True, slots=True)
 class Point:
     x: float
     y: float
@@ -55,31 +55,34 @@ class Point:
 The `frozen=True` makes instances immutable (matching F# record semantics),
 and `slots=True` optimizes memory usage.
 
-## Pydantic BaseModel Integration
+## ClassAttributes for Pydantic
 
-Here's how to create Pydantic models in F#:
+The `Py.ClassAttributes` attribute controls how class members are generated,
+which is essential for Pydantic compatibility:
+
 ```fsharp
-// Import Pydantic's BaseModel
+
 [<Import("BaseModel", "pydantic")>]
 type BaseModel () = class end
 
-// Define a Pydantic-compatible model
-[<Py.ClassAttributes(style=Py.ClassAttributeStyle.Attributes, init=false)>]
-type PydanticUser(Name: string, Age: int, Email: string option) =
+[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes)>]
+type PydanticUser() =
     inherit BaseModel()
-    member val Name: string = Name with get, set
-    member val Age: int = Age with get, set
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
     member val Email: string option = None with get, set
+
 ```
+
 This generates clean Pydantic code:
 
 ```python
 from pydantic import BaseModel
 
 class PydanticUser(BaseModel):
-    Age: int
-    Email: str | None
-    Name: str
+    Name: str = ""
+    Age: int = 0
+    Email: str | None = None
 ```
 
 You get all of Pydantic's features:
@@ -104,48 +107,20 @@ Notice how `string option` becomes `str | None` in Python. Fable v5 uses
 modern Python union syntax for optional types, making the generated code
 feel native to Python developers.
 
-## Example: API Model
+## Example: FastAPI Integration
 
-Here's a practical example for a REST API:
-```fsharp
-[<Import("BaseModel", "pydantic")>]
-type BaseModel () = class end
-
-[<Import("Field", "pydantic")>]
-let Field: obj = nativeOnly
-
-[<Py.ClassAttributes(style=Py.ClassAttributeStyle.Attributes, init=false)>]
-type CreateUserRequest(username: string, email: string, age: int option) =
-    inherit BaseModel()
-    member val username: string = username with get, set
-    member val email: string = email with get, set
-    member val age: int option = None with get, set
-
-[<Py.ClassAttributes(style=Py.ClassAttributeStyle.Attributes, init=false)>]
-type UserResponse(id: int, username: string, email: string, created_at: string) =
-    inherit BaseModel()
-    member val id: int = id with get, set
-    member val username: string = username with get, set
-    member val email: string = email with get, set
-    member val created_at: string = created_at with get, set
-```
-These models can be used directly with FastAPI:
+These Pydantic models can be used directly with FastAPI:
 
 ```python
 from fastapi import FastAPI
-from your_fsharp_module import CreateUserRequest, UserResponse
+from your_fsharp_module import PydanticUser
 
 app = FastAPI()
 
-@app.post("/users", response_model=UserResponse)
-def create_user(request: CreateUserRequest) -> UserResponse:
+@app.post("/users")
+def create_user(user: PydanticUser) -> PydanticUser:
     # Pydantic validates the request automatically
-    return UserResponse(
-        id=1,
-        username=request.username,
-        email=request.email,
-        created_at="2025-01-01T00:00:00Z"
-    )
+    return user
 ```
 
 You get the best of both worlds: F#'s type safety during development,
