@@ -7,16 +7,29 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 ## Chapters
 
 1. **Introduction** - What is Fable.Python and why use it
-2. **Getting Started** - Setup, your first project, hello world
-3. **Bindings** - Python interop and type bindings
-4. **Compatibility** - Supported F# features and limitations
-5. **Fable v5** - What's new in Fable v5 for Python
-6. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
-7. **Units of Measure** - Compile-time dimensional analysis
+2. **For Python Developers** - F# concepts explained for Pythonistas
+3. **Getting Started** - Setup, your first project, hello world
+4. **Interop** - Using existing Python libraries and Fable.Python bindings
+5. **Bindings** - Creating your own type-safe bindings for Python libraries
+6. **Compatibility** - Supported F# features and limitations
+7. **Fable v5** - What's new in Fable v5 for Python
+8. **Libraries** - Existing ecosystem (Thoth.Json, AsyncRx, Siren, etc.) *(coming soon)*
+9. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
+10. **Units of Measure** - Compile-time dimensional analysis
+11. **Testing** - XUnit and Fable.Pyxpecto *(coming soon)*
+12. **Fabletext: The Strange Loop** - The self-documenting finale
 
-## The Meta Twist
+## The Strange Loop
 
-This guide is self-documenting: each chapter is an `.fs` file with embedded Markdown comments using FSharp.Formatting conventions. **Fabletext**, a literate converter inspired by [jupytext](https://github.com/mwouts/jupytext) (also written in F# and transpiled via Fable.Python), processes these files to generate the final Markdown output.
+This guide is self-documenting: each chapter is an `.fs` file with embedded Markdown comments. **Fabletext** (the final chapter) processes these files to generate the documentation you're reading - including itself.
+
+The chain:
+1. Write F# with embedded Markdown (`chapters/*.fs`)
+2. Compile to Python with Fable
+3. Run Fabletext (F# compiled to Python) to extract documentation
+4. Output: the Markdown you're reading
+
+The blog post is its own proof of concept.
 
 ## Quick Start
 
@@ -41,7 +54,7 @@ just restore    # Restore NuGet packages
 just build      # Compile F# to Python with Fable
 just generate   # Convert chapters to individual markdown files
 just blogpost   # Generate concatenated blogpost.md for publishing
-just format     # Format Python files with ruff
+just format     # Format F# (fantomas) and Python (ruff) files
 just lint       # Lint Python (ruff) and Markdown (markdownlint)
 just all        # Full pipeline: restore, build, generate, format, lint
 just clean      # Remove generated files
@@ -51,25 +64,38 @@ just clean      # Remove generated files
 
 ```text
 chapters/
-├── 01-introduction.fs      # What is Fable.Python
-├── 02-getting-started.fs   # Setup and first project
-├── 03-bindings.fs          # Python interop
-├── 04-compatibility.fs     # F# feature support
-├── 05-fable-v5.fs          # What's new in Fable v5
-├── 06-pydantic.fs          # Pydantic interop
-└── 07-units-of-measure.fs  # Dimensional analysis
+├── introduction.fs       # What is Fable.Python
+├── python.fs             # F# for Python developers
+├── getting-started.fs    # Setup and first project
+├── interop.fs            # Using Python libraries
+├── bindings.fs           # Creating bindings
+├── compatibility.fs      # F# feature support
+├── fable-v5.fs           # What's new in Fable v5
+├── pydantic.fs           # Pydantic interop
+└── units-of-measure.fs   # Dimensional analysis
 tools/
-├── fabletext.fs            # Fabletext converter (F#)
+├── fabletext.fs          # Fabletext converter (F#)
 └── fabletext.fsproj
 output/
-├── chapters/               # Generated Python from chapters
+├── chapters/             # Generated Python from chapters
 └── tools/
-    └── fabletext.py        # Generated converter (Python)
+    └── fabletext.py      # Generated converter (Python)
 docs/
-├── 01-introduction.md      # Individual chapter docs
+├── introduction.md       # Individual chapter docs
+├── python.md
 ├── ...
-└── blogpost.md             # Concatenated for Hashnode
+└── blogpost.md           # Concatenated for Hashnode
 ```
+
+## Chapter Order
+
+Defined in `justfile`:
+
+```just
+chapters := "introduction python getting-started interop bindings compatibility fable-v5 pydantic units-of-measure"
+```
+
+To add a new chapter, just add the file and update this list.
 
 ## Technology Stack
 
@@ -77,21 +103,25 @@ docs/
 - **uv** - Python dependency management
 - **just** - Command runner
 - **ruff** - Python formatter/linter
+- **fantomas** - F# formatter
 - **markdownlint** - Markdown linter
 
-## CI/CD
+## Related Libraries
 
-GitHub Actions automatically:
-
-- Builds all F# to Python
-- Generates the blogpost
-- Opens a PR when content changes
+- [Thoth.Json.Python](https://github.com/thoth-org/Thoth.Json.Python) - Type-safe JSON
+- [AsyncRx](https://github.com/dbrattli/AsyncRx) - Reactive extensions
+- [Fable.Giraffe](https://github.com/dbrattli/Fable.Giraffe) - Web framework
+- [Feliz.ViewEngine](https://github.com/dbrattli/Feliz.ViewEngine) - HTML DSL
+- [Siren](https://github.com/Freymaurer/Siren) - Mermaid diagrams
+- [Fable.Pyxpecto](https://github.com/Freymaurer/Fable.Pyxpecto) - Testing
+- [ARCtrl](https://github.com/nfdi4plants/ARCtrl) - Real-world multi-target library
 
 ## Resources
 
 - [Fable](https://fable.io/)
 - [Fable.Python Documentation](https://fable.io/docs/getting-started/python.html)
 - [Fable.Python GitHub](https://github.com/fable-compiler/Fable.Python/)
+- [BINDINGS_GUIDE.md](./BINDINGS_GUIDE.md) - Comprehensive binding patterns
 
 ---
 
