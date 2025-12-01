@@ -68,9 +68,9 @@ which is essential for Pydantic compatibility:
 *)
 
 [<Import("BaseModel", "pydantic")>]
-type BaseModel () = class end
+type BaseModel() = class end
 
-[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes)>]
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
 type PydanticUser() =
     inherit BaseModel()
     member val Name: string = "" with get, set
@@ -84,9 +84,9 @@ This generates clean Pydantic code:
 from pydantic import BaseModel
 
 class PydanticUser(BaseModel):
+    Age: int32 = int32.ZERO
+    Email: str | None
     Name: str = ""
-    Age: int = 0
-    Email: str | None = None
 ```
 
 You get all of Pydantic's features:

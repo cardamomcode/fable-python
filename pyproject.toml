@@ -10,6 +10,7 @@ authors = [
 license = {text = "ISC"}
 dependencies = [
     "fable-library==5.0.0a17",
+    "pydantic>=2.12.5",
 ]
 
 [dependency-groups]

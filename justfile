@@ -5,10 +5,9 @@
 default:
     @just --list
 
-# Install .NET tools (Fable) and Python dependencies
+# Install .NET tools (Fable, Fantomas) and Python dependencies
 setup:
-    dotnet new tool-manifest --force
-    dotnet tool install fable --version 5.0.0-alpha.17
+    dotnet tool restore
     uv sync
 
 # Restore NuGet packages
@@ -71,9 +70,16 @@ clean:
 run file:
     uv run python output/chapters/{{file}}.py
 
+# Format F# files with fantomas
+format-fsharp:
+    dotnet fantomas chapters/ tools/
+
 # Format Python files with ruff
-format:
+format-python:
     uv run ruff format output/
+
+# Format all source files (F# and Python)
+format: format-fsharp format-python
 
 # Lint Python files with ruff
 lint-python:

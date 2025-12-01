@@ -29,9 +29,14 @@ module UnitsOfMeasure
 (**
 *)
 
-[<Measure>] type m      // meters
-[<Measure>] type s      // seconds
-[<Measure>] type kg     // kilograms
+[<Measure>]
+type m // meters
+
+[<Measure>]
+type s // seconds
+
+[<Measure>]
+type kg // kilograms
 
 (**
 Now we can define values with units:
@@ -39,7 +44,7 @@ Now we can define values with units:
 
 let distance = 100.0<m>
 let time = 9.58<s>
-let speed = distance / time  // Automatically inferred as float<m/s>
+let speed = distance / time // Automatically inferred as float<m/s>
 
 (**
 The compiler tracks units through all operations. Division of meters by
@@ -63,12 +68,15 @@ let mass = 50.0<kg>
 You can define derived units based on existing ones:
 *)
 
-[<Measure>] type N = kg * m / s^2   // Newton
-[<Measure>] type J = N * m          // Joule
+[<Measure>]
+type N = kg * m / s^2 // Newton
+
+[<Measure>]
+type J = N * m // Joule
 
 let force = 10.0<N>
 let displacement = 5.0<m>
-let work = force * displacement     // Inferred as float<J>
+let work = force * displacement // Inferred as float<J>
 
 (**
 ## Real-World Example: Physics Simulation
@@ -76,11 +84,10 @@ let work = force * displacement     // Inferred as float<J>
 Here's a practical example computing kinetic energy:
 *)
 
-let kineticEnergy (mass: float<kg>) (velocity: float<m/s>) : float<J> =
-    0.5 * mass * velocity * velocity
+let kineticEnergy (mass: float<kg>) (velocity: float<m / s>) : float<J> = 0.5 * mass * velocity * velocity
 
 let carMass = 1500.0<kg>
-let carSpeed = 30.0<m/s>
+let carSpeed = 30.0<m / s>
 let energy = kineticEnergy carMass carSpeed
 
 (**
@@ -92,14 +99,17 @@ The compiler ensures you can't accidentally pass velocity where mass is expected
 Define conversion functions with explicit unit transformations:
 *)
 
-[<Measure>] type km
-[<Measure>] type h
+[<Measure>]
+type km
 
-let metersToKm (d: float<m>) : float<km> = d / 1000.0<m/km>
-let secondsToHours (t: float<s>) : float<h> = t / 3600.0<s/h>
+[<Measure>]
+type h
+
+let metersToKm (d: float<m>) : float<km> = d / 1000.0<m / km>
+let secondsToHours (t: float<s>) : float<h> = t / 3600.0<s / h>
 
 let marathonDistance = 42195.0<m>
-let marathonKm = metersToKm marathonDistance  // 42.195<km>
+let marathonKm = metersToKm marathonDistance // 42.195<km>
 
 (**
 ## Generated Python

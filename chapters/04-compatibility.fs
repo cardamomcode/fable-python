@@ -24,7 +24,7 @@ let isEnabled = true
 let coordinates = (10.5, 20.3)
 
 // F# List -> Python list (via fable-library)
-let numbers = [1; 2; 3; 4; 5]
+let numbers = [ 1; 2; 3; 4; 5 ]
 
 // ResizeArray -> Python list (native)
 let mutableList = ResizeArray<int>()
@@ -39,7 +39,7 @@ let add x y = x + y
 let multiply = fun x y -> x * y
 
 let applyTwice f x = f (f x)
-let result = applyTwice (add 1) 5  // 7
+let result = applyTwice (add 1) 5 // 7
 
 (**
 ### Pattern Matching
@@ -94,8 +94,8 @@ type Shape =
 let describe shape =
     match shape with
     | Circle r -> $"Circle with radius {r}"
-    | Rectangle (w, h) -> $"Rectangle {w}x{h}"
-    | Triangle (a, b, c) -> $"Triangle with sides {a}, {b}, {c}"
+    | Rectangle(w, h) -> $"Rectangle {w}x{h}"
+    | Triangle(a, b, c) -> $"Triangle with sides {a}, {b}, {c}"
 
 (**
 ### Object-Oriented Features
@@ -108,6 +108,7 @@ type IShape =
 
 type Circle2(radius: float) =
     member _.Radius = radius
+
     interface IShape with
         member _.Area = System.Math.PI * radius * radius
 
@@ -118,20 +119,16 @@ Core collection operations are supported:
 *)
 
 let listOps =
-    [1..10]
+    [ 1..10 ]
     |> List.filter (fun x -> x % 2 = 0)
     |> List.map (fun x -> x * x)
     |> List.sum
 
-let arrayOps =
-    [|1; 2; 3|]
-    |> Array.map (fun x -> x + 1)
+let arrayOps = [| 1; 2; 3 |] |> Array.map (fun x -> x + 1)
 
-let setOps =
-    Set.ofList [1; 2; 2; 3; 3; 3]  // {1, 2, 3}
+let setOps = Set.ofList [ 1; 2; 2; 3; 3; 3 ] // {1, 2, 3}
 
-let mapOps =
-    Map.ofList [("a", 1); ("b", 2)]
+let mapOps = Map.ofList [ ("a", 1); ("b", 2) ]
 
 (**
 ## Limitations and Differences
@@ -141,8 +138,8 @@ let mapOps =
 Options are optimized away at runtime:
 *)
 
-let someValue = Some 42    // Compiles to just: 42
-let noneValue = None       // Compiles to: None
+let someValue = Some 42 // Compiles to just: 42
+let noneValue = None // Compiles to: None
 
 (**
 This works fine for most cases, but be careful with nested options -
@@ -156,7 +153,7 @@ functions:
 
 // This F#:
 let processed =
-    [1; 2; 3]
+    [ 1; 2; 3 ]
     |> List.map (fun x ->
         let doubled = x * 2
         let squared = doubled * doubled

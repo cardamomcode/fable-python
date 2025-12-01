@@ -49,8 +49,7 @@ Fable.Python is a great choice when:
 Let's start with something simple. Here's F# code that will compile to Python:
 *)
 
-let greet name =
-    $"Hello, {name}!"
+let greet name = $"Hello, {name}!"
 
 let message = greet "Fable.Python"
 
@@ -76,12 +75,9 @@ type Shape =
 let area shape =
     match shape with
     | Circle radius -> System.Math.PI * radius * radius
-    | Rectangle (width, height) -> width * height
+    | Rectangle(width, height) -> width * height
 
-let shapes = [
-    Circle 5.0
-    Rectangle (3.0, 4.0)
-]
+let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 
 let totalArea = shapes |> List.sumBy area
 
