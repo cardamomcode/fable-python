@@ -46,12 +46,9 @@ Fable.Python is a great choice when:
 Let's start with something simple. Here's F# code that will compile to Python:
 
 ```fsharp
-
-let greet name =
-    $"Hello, {name}!"
+let greet name = $"Hello, {name}!"
 
 let message = greet "Fable.Python"
-
 ```
 
 When compiled with Fable, this generates clean, readable Python:
@@ -68,7 +65,6 @@ message = greet("Fable.Python")
 F# shines when modeling domain concepts. Consider this example:
 
 ```fsharp
-
 type Shape =
     | Circle of radius: float
     | Rectangle of width: float * height: float
@@ -76,15 +72,11 @@ type Shape =
 let area shape =
     match shape with
     | Circle radius -> System.Math.PI * radius * radius
-    | Rectangle (width, height) -> width * height
+    | Rectangle(width, height) -> width * height
 
-let shapes = [
-    Circle 5.0
-    Rectangle (3.0, 4.0)
-]
+let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 
 let totalArea = shapes |> List.sumBy area
-
 ```
 
 This compiles to Python while preserving the semantic meaning. The discriminated
@@ -100,6 +92,245 @@ In the following chapters, we'll cover:
 - **Compatibility** - Understanding what F# features are supported
 
 Let's dive in!
+
+## Are You a Python Developer?
+
+If you're coming from Python, welcome! This chapter will help you understand
+the F# code you'll see throughout this guide. Don't worry - F# is more
+approachable than it might first appear, and many concepts will feel familiar.
+
+### What is F#?
+
+F# is a functional-first language that runs on .NET. But here's the key insight
+for you: **with Fable.Python, .NET is just a build tool**. You write F#, it
+compiles to Python, and you run Python. Your deployment is pure Python.
+
+Think of it like TypeScript for JavaScript - you get better tooling and type
+safety during development, but the output is the language you know.
+
+### Key Concepts You'll See
+
+Let's map F# concepts to Python equivalents you already understand.
+
+#### Type Inference
+
+F# has type inference like Python's type hints, but enforced at compile time:
+
+```python
+# Python with type hints (optional, not enforced)
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+```
+
+```fsharp
+// F# - types are inferred automatically
+let greet name = $"Hello, {name}"
+
+// Or explicitly annotated (rarely needed)
+let greetExplicit (name: string) : string = $"Hello, {name}"
+```
+
+The compiler figures out that `name` is a string and `greet` returns a string.
+No need to write it unless you want to.
+
+#### Pattern Matching
+
+Python 3.10+ has `match`/`case`. F# pattern matching is similar but more powerful:
+
+```python
+# Python match/case
+match command:
+    case "quit":
+        return exit()
+    case "help":
+        return show_help()
+    case _:
+        return unknown_command()
+```
+
+```fsharp
+let handleCommand command =
+    match command with
+    | "quit" -> "Exiting..."
+    | "help" -> "Showing help..."
+    | _ -> "Unknown command"
+```
+
+F# pattern matching also destructures data, which we'll see with discriminated unions.
+
+#### Discriminated Unions (Sum Types)
+
+This is F#'s superpower. Think of it as a type-safe enum that can hold data:
+
+```python
+# Python - often done with classes or dataclasses
+class Shape:
+    pass
+
+class Circle(Shape):
+    def __init__(self, radius: float):
+        self.radius = radius
+
+class Rectangle(Shape):
+    def __init__(self, width: float, height: float):
+        self.width = width
+        self.height = height
+```
+
+```fsharp
+// F# discriminated union - much more concise
+type Shape =
+    | Circle of radius: float
+    | Rectangle of width: float * height: float
+
+// Pattern matching ensures you handle all cases
+let area shape =
+    match shape with
+    | Circle radius -> Math.PI * radius * radius
+    | Rectangle (width, height) -> width * height
+```
+
+The compiler will warn you if you forget to handle a case. No more runtime
+`AttributeError` because you forgot a shape type!
+
+#### Records
+
+Records are like Python's `@dataclass` but immutable by default:
+
+```python
+# Python dataclass
+@dataclass
+class Person:
+    name: str
+    age: int
+    email: str | None = None
+```
+
+```fsharp
+// F# record
+type Person = {
+    Name: string
+    Age: int
+    Email: string option
+}
+
+// Creating a record
+let alice = {
+    Name = "Alice"
+    Age = 30
+    Email = Some "alice@example.com"
+}
+```
+
+Records are immutable - to "change" one, you create a copy with updated fields:
+
+```fsharp
+let olderAlice = { alice with Age = 31 }
+```
+
+#### The Pipeline Operator
+
+The `|>` operator is like method chaining, but for any function:
+
+```python
+# Python - nested calls or intermediate variables
+result = sum(map(lambda x: x * 2, filter(lambda x: x > 0, numbers)))
+
+# Or with intermediate variables
+positives = filter(lambda x: x > 0, numbers)
+doubled = map(lambda x: x * 2, positives)
+result = sum(doubled)
+```
+
+```fsharp
+let numbers = [-1; 2; -3; 4; 5]
+
+// F# pipeline - reads left to right, top to bottom
+let result =
+    numbers
+    |> List.filter (fun x -> x > 0)
+    |> List.map (fun x -> x * 2)
+    |> List.sum
+```
+
+The `|>` operator takes the value on the left and passes it as the last
+argument to the function on the right. It makes data transformations very
+readable.
+
+#### Option Types
+
+F# uses `Option` instead of `None`/null. This forces you to handle missing values:
+
+```python
+# Python - None can sneak in anywhere
+def find_user(id: int) -> User | None:
+    ...
+
+user = find_user(123)
+print(user.name)  # Runtime error if user is None!
+```
+
+```fsharp
+// F# Option - compiler ensures you handle None
+let findUser id : Person option =
+    if id = 1 then Some alice
+    else None
+
+let displayName userId =
+    match findUser userId with
+    | Some person -> person.Name
+    | None -> "Unknown user"
+```
+
+You cannot accidentally use a `None` value - the compiler requires you to
+unwrap the option first.
+
+### F# vs Python: Quick Reference
+
+| Concept          | Python              | F#                        |
+| ---------------- | ------------------- | ------------------------- |
+| Function def     | `def foo(x):`       | `let foo x =`             |
+| Lambda           | `lambda x: x + 1`   | `fun x -> x + 1`          |
+| List             | `[1, 2, 3]`         | `[1; 2; 3]`               |
+| Tuple            | `(1, "a")`          | `(1, "a")`                |
+| Dictionary       | `{"a": 1}`          | `Map.ofList [("a", 1)]`   |
+| None check       | `if x is None:`     | `match x with None ->`    |
+| String format    | `f"Hello {name}"`   | `$"Hello {name}"`         |
+| Type annotation  | `x: int`            | `x: int` (same!)          |
+| Comments         | `# comment`         | `// comment`              |
+| Multiline string | `"""text"""`        | `"""text"""` (same!)      |
+
+### Why Learn F#?
+
+As a Python developer, F# gives you:
+
+1. **Catch bugs at compile time** - No more `TypeError` or `AttributeError` at runtime
+2. **Exhaustive pattern matching** - Compiler ensures you handle all cases
+3. **Immutability by default** - Fewer bugs from unexpected state changes
+4. **Excellent refactoring** - Change a type, compiler shows every place to update
+5. **Self-documenting code** - Types serve as documentation that can't go stale
+
+### Don't Worry About .NET
+
+You might think "but I don't know .NET!" - and that's fine. For Fable.Python:
+
+- You don't deploy to .NET
+- You don't need to learn C# or ASP.NET
+- You don't need Windows or Visual Studio
+
+.NET is just the build toolchain. You:
+
+1. Write F# code
+2. Run `dotnet fable --lang python`
+3. Get Python files
+4. Run with `python`
+
+Your deployment, your dependencies, your runtime - all Python.
+
+### Ready to Start?
+
+Now that you understand the basics, let's set up your first Fable.Python project
+in the next chapter!
 
 ## Getting Started with Fable.Python
 
@@ -218,15 +449,13 @@ type-safe bindings.
 Use the `Import` attribute to bring in Python modules:
 
 ```fsharp
-
 open Fable.Core
 
 [<Import("path", "os")>]
 let osPath: obj = nativeOnly
 
 [<ImportMember("os.path")>]
-let join(paths: string[]): string = nativeOnly
-
+let join (paths: string[]) : string = nativeOnly
 ```
 
 The `nativeOnly` placeholder tells Fable this will be resolved at runtime.
@@ -236,10 +465,8 @@ The `nativeOnly` placeholder tells Fable this will be resolved at runtime.
 Fable automatically converts F# camelCase to Python snake_case:
 
 ```fsharp
-
 type MyClass() =
-    member _.myMethod() = "hello"  // Becomes my_method() in Python
-
+    member _.myMethod() = "hello" // Becomes my_method() in Python
 ```
 
 This keeps your F# code idiomatic while generating Pythonic output.
@@ -249,13 +476,11 @@ This keeps your F# code idiomatic while generating Pythonic output.
 For direct Python code embedding, use `[<Emit>]`:
 
 ```fsharp
-
 [<Emit("len($0)")>]
-let pyLen(x: 'a): int = nativeOnly
+let pyLen (x: 'a) : int = nativeOnly
 
 [<Emit("print($0, end=$1)")>]
-let printWithEnd(value: string, ending: string): unit = nativeOnly
-
+let printWithEnd (value: string, ending: string) : unit = nativeOnly
 ```
 
 The `$0`, `$1`, etc. are placeholders for arguments.
@@ -267,12 +492,10 @@ The `$0`, `$1`, etc. are placeholders for arguments.
 F# lists compile to Python lists, making interop natural:
 
 ```fsharp
-
-let fsharpList = [1; 2; 3; 4; 5]
+let fsharpList = [ 1; 2; 3; 4; 5 ]
 // Compiles to: [1, 2, 3, 4, 5]
 
 let doubled = fsharpList |> List.map (fun x -> x * 2)
-
 ```
 
 #### Dictionaries
@@ -280,12 +503,7 @@ let doubled = fsharpList |> List.map (fun x -> x * 2)
 F# Maps work with Python dicts:
 
 ```fsharp
-
-let config = Map.ofList [
-    "host", "localhost"
-    "port", "8080"
-]
-
+let config = Map.ofList [ "host", "localhost"; "port", "8080" ]
 ```
 
 #### Tuples
@@ -293,10 +511,8 @@ let config = Map.ofList [
 F# tuples become Python tuples:
 
 ```fsharp
-
 let point = (10, 20)
 let x, y = point
-
 ```
 
 ### Erased Unions
@@ -304,18 +520,16 @@ let x, y = point
 For APIs that accept multiple types, use erased unions:
 
 ```fsharp
-
 open Fable.Core.JsInterop
 
 [<Emit("isinstance($0, str)")>]
-let isString(x: obj): bool = nativeOnly
+let isString (x: obj) : bool = nativeOnly
 
 // U2 can hold either type
 let processValue (value: U2<string, int>) =
     match value with
     | U2.Case1 s -> $"String: {s}"
     | U2.Case2 n -> $"Number: {n}"
-
 ```
 
 ### String Enums
@@ -323,7 +537,6 @@ let processValue (value: U2<string, int>) =
 For Python APIs that use string constants:
 
 ```fsharp
-
 [<StringEnum>]
 type LogLevel =
     | Debug
@@ -331,8 +544,7 @@ type LogLevel =
     | Warning
     | Error
 
-let level = LogLevel.Info  // Compiles to: "info"
-
+let level = LogLevel.Info // Compiles to: "info"
 ```
 
 ### Creating Binding Libraries
@@ -358,19 +570,17 @@ type MyClass =
 You can create bindings for Python's built-in functions:
 
 ```fsharp
-
 [<Emit("len($0)")>]
-let len (x: 'a): int = nativeOnly
+let len (x: 'a) : int = nativeOnly
 
 [<Emit("print($0)")>]
-let pyPrint (x: 'a): unit = nativeOnly
+let pyPrint (x: 'a) : unit = nativeOnly
 
 [<Emit("range($0)")>]
-let range (n: int): seq<int> = nativeOnly
+let range (n: int) : seq<int> = nativeOnly
 
 [<Emit("open($0, $1)")>]
-let openFile (path: string) (mode: string): obj = nativeOnly
-
+let openFile (path: string) (mode: string) : obj = nativeOnly
 ```
 
 ### Next Steps
@@ -391,7 +601,6 @@ important differences from .NET.
 These F# types map directly to Python equivalents:
 
 ```fsharp
-
 // Strings -> Python str
 let greeting = "Hello, Python!"
 
@@ -402,11 +611,10 @@ let isEnabled = true
 let coordinates = (10.5, 20.3)
 
 // F# List -> Python list (via fable-library)
-let numbers = [1; 2; 3; 4; 5]
+let numbers = [ 1; 2; 3; 4; 5 ]
 
 // ResizeArray -> Python list (native)
 let mutableList = ResizeArray<int>()
-
 ```
 
 #### Functions and Lambdas
@@ -414,13 +622,11 @@ let mutableList = ResizeArray<int>()
 First-class functions work as expected:
 
 ```fsharp
-
 let add x y = x + y
 let multiply = fun x y -> x * y
 
 let applyTwice f x = f (f x)
-let result = applyTwice (add 1) 5  // 7
-
+let result = applyTwice (add 1) 5 // 7
 ```
 
 #### Pattern Matching
@@ -428,7 +634,6 @@ let result = applyTwice (add 1) 5  // 7
 Full pattern matching support:
 
 ```fsharp
-
 type Result<'T, 'E> =
     | Ok of 'T
     | Error of 'E
@@ -443,7 +648,6 @@ let activePatternExample input =
     | x when x > 0 -> "positive"
     | x when x < 0 -> "negative"
     | _ -> "zero"
-
 ```
 
 #### Records
@@ -451,7 +655,6 @@ let activePatternExample input =
 Records compile to Python dataclasses:
 
 ```fsharp
-
 type Person = {
     Name: string
     Age: int
@@ -463,7 +666,6 @@ let person = {
     Age = 30
     Email = Some "alice@example.com"
 }
-
 ```
 
 #### Discriminated Unions
@@ -471,7 +673,6 @@ let person = {
 DUs are fully supported with pattern matching:
 
 ```fsharp
-
 type Shape =
     | Circle of radius: float
     | Rectangle of width: float * height: float
@@ -480,9 +681,8 @@ type Shape =
 let describe shape =
     match shape with
     | Circle r -> $"Circle with radius {r}"
-    | Rectangle (w, h) -> $"Rectangle {w}x{h}"
-    | Triangle (a, b, c) -> $"Triangle with sides {a}, {b}, {c}"
-
+    | Rectangle(w, h) -> $"Rectangle {w}x{h}"
+    | Triangle(a, b, c) -> $"Triangle with sides {a}, {b}, {c}"
 ```
 
 #### Object-Oriented Features
@@ -490,15 +690,14 @@ let describe shape =
 Classes, interfaces, inheritance, and overloading work:
 
 ```fsharp
-
 type IShape =
     abstract member Area: float
 
 type Circle2(radius: float) =
     member _.Radius = radius
+
     interface IShape with
         member _.Area = System.Math.PI * radius * radius
-
 ```
 
 #### Collections
@@ -506,23 +705,17 @@ type Circle2(radius: float) =
 Core collection operations are supported:
 
 ```fsharp
-
 let listOps =
-    [1..10]
+    [ 1..10 ]
     |> List.filter (fun x -> x % 2 = 0)
     |> List.map (fun x -> x * x)
     |> List.sum
 
-let arrayOps =
-    [|1; 2; 3|]
-    |> Array.map (fun x -> x + 1)
+let arrayOps = [| 1; 2; 3 |] |> Array.map (fun x -> x + 1)
 
-let setOps =
-    Set.ofList [1; 2; 2; 3; 3; 3]  // {1, 2, 3}
+let setOps = Set.ofList [ 1; 2; 2; 3; 3; 3 ] // {1, 2, 3}
 
-let mapOps =
-    Map.ofList [("a", 1); ("b", 2)]
-
+let mapOps = Map.ofList [ ("a", 1); ("b", 2) ]
 ```
 
 ### Limitations and Differences
@@ -532,10 +725,8 @@ let mapOps =
 Options are optimized away at runtime:
 
 ```fsharp
-
-let someValue = Some 42    // Compiles to just: 42
-let noneValue = None       // Compiles to: None
-
+let someValue = Some 42 // Compiles to just: 42
+let noneValue = None // Compiles to: None
 ```
 
 This works fine for most cases, but be careful with nested options -
@@ -547,17 +738,15 @@ Python doesn't support multi-line lambdas. Fable lifts them to separate
 functions:
 
 ```fsharp
-
 // This F#:
 let processed =
-    [1; 2; 3]
+    [ 1; 2; 3 ]
     |> List.map (fun x ->
         let doubled = x * 2
         let squared = doubled * doubled
         squared)
 
 // Becomes a separate function in Python
-
 ```
 
 #### Numeric Types
@@ -566,10 +755,8 @@ Most numerics use custom wrappers to maintain F# semantics. `bigint` uses
 Python's native `int`:
 
 ```fsharp
-
 let small: int = 42
 let big: bigint = 12345678901234567890I
-
 ```
 
 #### Computation Expressions
@@ -715,13 +902,11 @@ together seamlessly.
 The `Py.Decorator` attribute lets you add Python decorators to F# types:
 
 ```fsharp
-
 [<Py.Decorate("dataclasses.dataclass")>]
 type Person = {
     Name: string
     Age: int
 }
-
 ```
 
 This generates:
@@ -740,13 +925,11 @@ The decorator is applied directly to the generated Python class!
 You can also pass parameters to decorators:
 
 ```fsharp
-
 [<Py.Decorate("dataclasses.dataclass", "frozen=True, slots=True")>]
 type Point = {
     X: float
     Y: float
 }
-
 ```
 
 This generates:
@@ -767,17 +950,15 @@ The `Py.ClassAttributes` attribute controls how class members are generated,
 which is essential for Pydantic compatibility:
 
 ```fsharp
-
 [<Import("BaseModel", "pydantic")>]
-type BaseModel () = class end
+type BaseModel() = class end
 
-[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes)>]
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
 type PydanticUser() =
     inherit BaseModel()
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
     member val Email: string option = None with get, set
-
 ```
 
 This generates clean Pydantic code:
@@ -786,9 +967,9 @@ This generates clean Pydantic code:
 from pydantic import BaseModel
 
 class PydanticUser(BaseModel):
+    Age: int32 = int32.ZERO
+    Email: str | None
     Name: str = ""
-    Age: int = 0
-    Email: str | None = None
 ```
 
 You get all of Pydantic's features:
@@ -856,21 +1037,22 @@ speed = distance / time  # ???
 F# lets you annotate numeric types with units that are checked at compile time:
 
 ```fsharp
+[<Measure>]
+type m // meters
 
-[<Measure>] type m      // meters
-[<Measure>] type s      // seconds
-[<Measure>] type kg     // kilograms
+[<Measure>]
+type s // seconds
 
+[<Measure>]
+type kg // kilograms
 ```
 
 Now we can define values with units:
 
 ```fsharp
-
 let distance = 100.0<m>
 let time = 9.58<s>
-let speed = distance / time  // Automatically inferred as float<m/s>
-
+let speed = distance / time // Automatically inferred as float<m/s>
 ```
 
 The compiler tracks units through all operations. Division of meters by
@@ -894,14 +1076,15 @@ let mass = 50.0<kg>
 You can define derived units based on existing ones:
 
 ```fsharp
+[<Measure>]
+type N = kg * m / s^2 // Newton
 
-[<Measure>] type N = kg * m / s^2   // Newton
-[<Measure>] type J = N * m          // Joule
+[<Measure>]
+type J = N * m // Joule
 
 let force = 10.0<N>
 let displacement = 5.0<m>
-let work = force * displacement     // Inferred as float<J>
-
+let work = force * displacement // Inferred as float<J>
 ```
 
 ### Real-World Example: Physics Simulation
@@ -909,14 +1092,11 @@ let work = force * displacement     // Inferred as float<J>
 Here's a practical example computing kinetic energy:
 
 ```fsharp
-
-let kineticEnergy (mass: float<kg>) (velocity: float<m/s>) : float<J> =
-    0.5 * mass * velocity * velocity
+let kineticEnergy (mass: float<kg>) (velocity: float<m / s>) : float<J> = 0.5 * mass * velocity * velocity
 
 let carMass = 1500.0<kg>
-let carSpeed = 30.0<m/s>
+let carSpeed = 30.0<m / s>
 let energy = kineticEnergy carMass carSpeed
-
 ```
 
 The function signature clearly documents what units are expected and returned.
@@ -927,16 +1107,17 @@ The compiler ensures you can't accidentally pass velocity where mass is expected
 Define conversion functions with explicit unit transformations:
 
 ```fsharp
+[<Measure>]
+type km
 
-[<Measure>] type km
-[<Measure>] type h
+[<Measure>]
+type h
 
-let metersToKm (d: float<m>) : float<km> = d / 1000.0<m/km>
-let secondsToHours (t: float<s>) : float<h> = t / 3600.0<s/h>
+let metersToKm (d: float<m>) : float<km> = d / 1000.0<m / km>
+let secondsToHours (t: float<s>) : float<h> = t / 3600.0<s / h>
 
 let marathonDistance = 42195.0<m>
-let marathonKm = metersToKm marathonDistance  // 42.195<km>
-
+let marathonKm = metersToKm marathonDistance // 42.195<km>
 ```
 
 ### Generated Python
@@ -990,7 +1171,6 @@ The converter is a simple state machine that processes input line by line:
 We track three possible states as we scan through the file:
 
 ```fsharp
-
 /// Represents the current state of the parser state machine.
 type ParserState =
     /// Inside a markdown block (** ... *)
@@ -999,34 +1179,32 @@ type ParserState =
     | InCode
     /// Hidden section after (*** hide ***), content is skipped
     | Hidden
-
 ```
 
 ### Line Classification
 
-Each line is classified to determine how to handle it:
+Each line is classified using an active pattern to determine how to handle it.
+The pattern also extracts content from markdown start lines:
 
 ```fsharp
-
-/// Classification of a source line for the parser.
-type LineType =
-    /// Start of markdown block: (**
-    | MarkdownStart
-    /// End of markdown block: *)
-    | MarkdownEnd
-    /// Hide command: (*** hide ***)
-    | HideCommand
-    /// Any other content line
-    | ContentLine
-
-/// Classifies a line of source code into its LineType.
-let classifyLine (line: string) : LineType =
+/// Active pattern for classifying source lines.
+/// - `HideCmd`: The (*** hide ***) directive
+/// - `MarkdownSingle content`: Single-line markdown (** content *)
+/// - `MarkdownOpen content`: Start of markdown block, possibly with content
+/// - `MarkdownClose`: End of markdown block *)
+/// - `Content`: Any other line
+let (|HideCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
     let trimmed = line.Trim()
-    if trimmed = "(*** hide ***)" then HideCommand
-    elif trimmed.StartsWith("(**") then MarkdownStart
-    elif trimmed = "*)" then MarkdownEnd
-    else ContentLine
 
+    match trimmed with
+    | "(*** hide ***)" -> HideCmd
+    | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
+        MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
+    | s when s.StartsWith("(**") ->
+        let content = if s.Length > 3 then s.Substring(3).Trim() else ""
+        MarkdownOpen content
+    | "*)" -> MarkdownClose
+    | _ -> Content
 ```
 
 ### State Transitions
@@ -1034,7 +1212,6 @@ let classifyLine (line: string) : LineType =
 The heart of the parser - handling transitions between states:
 
 ```fsharp
-
 /// The parsing context that tracks state, buffered code, and output.
 type ParseContext = {
     /// Current parser state
@@ -1052,79 +1229,83 @@ let emptyContext = {
     Output = []
 }
 
-/// Checks if a code block contains only boilerplate (module/namespace declarations).
-let isBoilerplate (code: string) : bool =
-    let trimmed = code.Trim()
-    trimmed.StartsWith("module ") || trimmed.StartsWith("namespace ")
+/// Active pattern that matches strings starting with any of the given prefixes.
+let (|StartsWithAny|_|) (prefixes: string list) (s: string) =
+    let trimmed = s.Trim()
+
+    if prefixes |> List.exists trimmed.StartsWith then
+        Some()
+    else
+        None
+
+/// Boilerplate prefixes that should be excluded from code blocks.
+let boilerplatePrefixes = [ "module "; "namespace " ]
 
 /// Flushes the code buffer to output as a fenced code block.
 /// Skips empty or boilerplate-only code blocks.
 let flushCodeBuffer (ctx: ParseContext) : ParseContext =
-    if ctx.CodeBuffer.IsEmpty then ctx
+    if ctx.CodeBuffer.IsEmpty then
+        ctx
     else
-        let code = ctx.CodeBuffer |> List.rev |> String.concat "\n"
+        let code =
+            ctx.CodeBuffer
+            |> List.rev
+            |> String.concat "\n"
+            |> fun s -> s.Trim() // Remove leading/trailing empty lines
         // Skip empty, whitespace-only, or boilerplate code blocks
-        if code.Trim().Length = 0 || isBoilerplate code then
-            { ctx with CodeBuffer = [] }
-        else
+        match code with
+        | s when String.IsNullOrWhiteSpace s -> { ctx with CodeBuffer = [] }
+        | StartsWithAny boilerplatePrefixes -> { ctx with CodeBuffer = [] }
+        | _ ->
             // Add blank line before and after code block for markdown lint compliance
             let block = $"\n```fsharp\n{code}\n```\n\n"
-            { ctx with
-                CodeBuffer = []
-                Output = block :: ctx.Output }
+
+            {
+                ctx with
+                    CodeBuffer = []
+                    Output = block :: ctx.Output
+            }
 
 /// Processes a single line, updating the parse context based on state transitions.
 let processLine (ctx: ParseContext) (line: string) : ParseContext =
-    let lineType = classifyLine line
-    match ctx.State, lineType with
+    match ctx.State, line with
     // Entering hidden mode
-    | _, HideCommand ->
-        let flushed = flushCodeBuffer ctx
-        { flushed with State = Hidden }
+    | _, HideCmd -> { flushCodeBuffer ctx with State = Hidden }
 
-    // Starting markdown block
-    | InCode, MarkdownStart
-    | Hidden, MarkdownStart ->
+    // Single-line markdown: (** content *)
+    | (InCode | Hidden), MarkdownSingle content ->
         let flushed = flushCodeBuffer ctx
-        let trimmed = line.Trim()
-        // Handle single-line markdown: (** content *)
-        if trimmed.EndsWith("*)") && trimmed.Length > 5 then
-            let content = trimmed.Substring(3, trimmed.Length - 5).Trim()
-            { flushed with
-                State = InCode
-                Output = (content + "\n") :: flushed.Output }
-        // Handle (** with content on same line
-        elif trimmed.Length > 3 then
-            let content = trimmed.Substring(3).Trim()
-            if content.Length > 0 then
-                { flushed with
+
+        { flushed with Output = (content + "\n") :: flushed.Output }
+
+    // Starting markdown block with or without content
+    | (InCode | Hidden), MarkdownOpen content ->
+        let flushed = flushCodeBuffer ctx
+
+        if content.Length > 0 then
+            {
+                flushed with
                     State = InMarkdown
-                    Output = (content + "\n") :: flushed.Output }
-            else
-                { flushed with State = InMarkdown }
+                    Output = (content + "\n") :: flushed.Output
+            }
         else
             { flushed with State = InMarkdown }
 
     // Ending markdown block
-    | InMarkdown, MarkdownEnd ->
-        { ctx with State = InCode }
+    | InMarkdown, MarkdownClose -> { ctx with State = InCode }
 
     // Content inside markdown
-    | InMarkdown, ContentLine ->
-        { ctx with Output = (line + "\n") :: ctx.Output }
+    | InMarkdown, Content -> { ctx with Output = (line + "\n") :: ctx.Output }
 
     // Code line (not hidden)
-    | InCode, ContentLine ->
-        { ctx with CodeBuffer = line :: ctx.CodeBuffer }
+    | InCode, Content -> { ctx with CodeBuffer = line :: ctx.CodeBuffer }
 
     // Hidden content - skip
-    | Hidden, ContentLine -> ctx
-    | Hidden, MarkdownEnd -> ctx
+    | Hidden, (Content | MarkdownClose) -> ctx
 
     // Ignore markdown markers in wrong state
-    | InMarkdown, MarkdownStart -> ctx
-    | InCode, MarkdownEnd -> ctx
-
+    | InMarkdown, (MarkdownOpen _ | MarkdownSingle _) -> ctx
+    | InCode, MarkdownClose -> ctx
 ```
 
 ### Processing a File
@@ -1132,17 +1313,10 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
 Read all lines, process them, and return the Markdown output:
 
 ```fsharp
-
 /// Processes all lines from a literate F# file and returns the Markdown output.
 let processLines (lines: string seq) : string =
-    let finalCtx =
-        lines
-        |> Seq.fold processLine emptyContext
-        |> flushCodeBuffer  // Flush any remaining code
-    finalCtx.Output
-    |> List.rev
-    |> String.concat ""
-
+    let finalCtx = lines |> Seq.fold processLine emptyContext |> flushCodeBuffer // Flush any remaining code
+    finalCtx.Output |> List.rev |> String.concat ""
 ```
 
 ### Header Level Adjustment
@@ -1151,25 +1325,19 @@ For concatenating multiple chapters into a single document, we need to
 increase header levels (# becomes ##, ## becomes ###, etc.):
 
 ```fsharp
-
 /// Increases all markdown header levels by one (# becomes ##, etc.).
 /// Preserves headers inside fenced code blocks.
 let adjustHeaderLevels (markdown: string) : string =
     let lines = markdown.Split('\n')
-    let mutable inCodeBlock = false
-    lines
-    |> Array.map (fun line ->
-        if line.StartsWith("```") then
-            inCodeBlock <- not inCodeBlock
-            line
-        elif inCodeBlock then
-            line
-        elif line.StartsWith("#") then
-            "#" + line
-        else
-            line)
-    |> String.concat "\n"
 
+    let folder (inCodeBlock, acc) (line: string) =
+        match line with
+        | s when s.StartsWith("```") -> not inCodeBlock, line :: acc
+        | _ when inCodeBlock -> inCodeBlock, line :: acc
+        | s when s.StartsWith("#") -> inCodeBlock, ("#" + line) :: acc
+        | _ -> inCodeBlock, line :: acc
+
+    lines |> Array.fold folder (false, []) |> snd |> List.rev |> String.concat "\n"
 ```
 
 ### Python File I/O
@@ -1177,7 +1345,6 @@ let adjustHeaderLevels (markdown: string) : string =
 For Fable.Python, we use Python's file operations:
 
 ```fsharp
-
 /// Reads the entire contents of a file as a string.
 [<Emit("open($0, 'r').read()")>]
 let readFile (path: string) : string = nativeOnly
@@ -1185,7 +1352,6 @@ let readFile (path: string) : string = nativeOnly
 /// Prints a string to stdout without a trailing newline.
 [<Emit("print($0, end='')")>]
 let printRaw (s: string) : unit = nativeOnly
-
 ```
 
 ### Main Entry Point
@@ -1193,7 +1359,6 @@ let printRaw (s: string) : unit = nativeOnly
 Read the input file, convert it, and print the result:
 
 ```fsharp
-
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 [<EntryPoint>]
@@ -1208,14 +1373,15 @@ let main (args: string[]) =
         let content = readFile files.[0]
         let lines = content.Split('\n')
         let markdown = processLines lines
+
         let output =
             if hasFlag "--increase-headers" then
                 adjustHeaderLevels markdown
             else
                 markdown
+
         printRaw output
         0
-
 ```
 
 ### Building and Running

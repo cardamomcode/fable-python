@@ -1,6 +1,10 @@
 # Fable.Python F# Advent 2025
 # Run `just` to see available commands
 
+# Chapter order for documentation generation
+# Edit this list to reorder or add chapters
+chapters := "introduction python getting-started interop bindings compatibility fable-v5 pydantic units-of-measure"
+
 # Default: show help
 default:
     @just --list
@@ -27,13 +31,12 @@ build-converter:
 watch:
     dotnet fable watch fable-python.fsproj --lang python -o output/chapters/
 
-# Generate markdown from all chapters
+# Generate markdown from all chapters (in order)
 generate: build
     #!/usr/bin/env bash
     mkdir -p docs
-    for f in chapters/*.fs; do
-        name=$(basename "$f" .fs)
-        uv run python output/tools/fabletext.py "$f" > "docs/${name}.md"
+    for name in {{chapters}}; do
+        uv run python output/tools/fabletext.py "chapters/${name}.fs" > "docs/${name}.md"
         echo "Generated docs/${name}.md"
     done
     # Also generate fabletext documentation
@@ -44,12 +47,17 @@ generate: build
 blogpost: build
     #!/usr/bin/env bash
     mkdir -p docs
-    # First chapter keeps original header levels (has the title)
-    uv run python output/tools/fabletext.py chapters/01-introduction.fs > docs/blogpost.md
-    # Remaining chapters get headers increased by one level
-    for f in chapters/02-*.fs chapters/03-*.fs chapters/04-*.fs chapters/05-*.fs chapters/06-*.fs chapters/07-*.fs; do
-        echo "" >> docs/blogpost.md
-        uv run python output/tools/fabletext.py --increase-headers "$f" >> docs/blogpost.md
+    first=true
+    for name in {{chapters}}; do
+        if $first; then
+            # First chapter keeps original header levels (has the title)
+            uv run python output/tools/fabletext.py "chapters/${name}.fs" > docs/blogpost.md
+            first=false
+        else
+            # Remaining chapters get headers increased by one level
+            echo "" >> docs/blogpost.md
+            uv run python output/tools/fabletext.py --increase-headers "chapters/${name}.fs" >> docs/blogpost.md
+        fi
     done
     # Include fabletext documenting itself (the meta twist!)
     echo "" >> docs/blogpost.md
@@ -74,16 +82,16 @@ run file:
 format-fsharp:
     dotnet fantomas chapters/ tools/
 
-# Format Python files with ruff
+# Format Python files with ruff (ignore gitignore for generated files)
 format-python:
-    uv run ruff format output/
+    uv run ruff format --no-respect-gitignore output/
 
 # Format all source files (F# and Python)
 format: format-fsharp format-python
 
-# Lint Python files with ruff
+# Lint Python files with ruff (ignore gitignore for generated files)
 lint-python:
-    uv run ruff check output/
+    uv run ruff check --no-respect-gitignore output/
 
 # Lint markdown files
 lint-markdown:

@@ -9,13 +9,11 @@ together seamlessly.
 The `Py.Decorator` attribute lets you add Python decorators to F# types:
 
 ```fsharp
-
 [<Py.Decorate("dataclasses.dataclass")>]
 type Person = {
     Name: string
     Age: int
 }
-
 ```
 
 This generates:
@@ -34,13 +32,11 @@ The decorator is applied directly to the generated Python class!
 You can also pass parameters to decorators:
 
 ```fsharp
-
 [<Py.Decorate("dataclasses.dataclass", "frozen=True, slots=True")>]
 type Point = {
     X: float
     Y: float
 }
-
 ```
 
 This generates:
@@ -61,17 +57,15 @@ The `Py.ClassAttributes` attribute controls how class members are generated,
 which is essential for Pydantic compatibility:
 
 ```fsharp
-
 [<Import("BaseModel", "pydantic")>]
-type BaseModel () = class end
+type BaseModel() = class end
 
-[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes)>]
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
 type PydanticUser() =
     inherit BaseModel()
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
     member val Email: string option = None with get, set
-
 ```
 
 This generates clean Pydantic code:
@@ -80,9 +74,9 @@ This generates clean Pydantic code:
 from pydantic import BaseModel
 
 class PydanticUser(BaseModel):
+    Age: int32 = int32.ZERO
+    Email: str | None
     Name: str = ""
-    Age: int = 0
-    Email: str | None = None
 ```
 
 You get all of Pydantic's features:

@@ -19,23 +19,36 @@ F# is a functional-first language with powerful features like:
 - **Algebraic data types** - Model your domain precisely
 
 With Fable.Python, you get all these benefits while targeting the Python ecosystem.
-This means you can:
 
-1. Use F#'s type system and functional patterns
-2. Interop with Python libraries (NumPy, Pandas, etc.)
-3. Deploy anywhere Python runs - no .NET runtime needed
+## When to Use Fable.Python
+
+Fable.Python is a great choice when:
+
+- **Python ecosystem access** - You need AI/ML libraries (PyTorch, TensorFlow, LangChain),
+  data science tools (Pandas, NumPy), or frameworks like Pydantic and FastAPI
+- **F# type safety** - You want pattern matching and exhaustive checking while using
+  Python libraries
+- **Shared domain logic** - Write once in F#, run on .NET, JavaScript, Rust, and Python
+- **Publish to PyPI** - Your F# library can be available to the entire Python ecosystem
+- **Units of measure** - F#'s compile-time dimensional analysis prevents unit errors
+  that Python can't catch
+
+## When NOT to Use Fable.Python
+
+- When your F# code depends on .NET libraries without Fable support
+- Performance-critical code (Python is still slow)
+- Team won't learn F#
+
+**Best fit:** You love F#, but need Python's ecosystem.
 
 ## A Simple Example
 
 Let's start with something simple. Here's F# code that will compile to Python:
 
 ```fsharp
-
-let greet name =
-    $"Hello, {name}!"
+let greet name = $"Hello, {name}!"
 
 let message = greet "Fable.Python"
-
 ```
 
 When compiled with Fable, this generates clean, readable Python:
@@ -52,7 +65,6 @@ message = greet("Fable.Python")
 F# shines when modeling domain concepts. Consider this example:
 
 ```fsharp
-
 type Shape =
     | Circle of radius: float
     | Rectangle of width: float * height: float
@@ -60,15 +72,11 @@ type Shape =
 let area shape =
     match shape with
     | Circle radius -> System.Math.PI * radius * radius
-    | Rectangle (width, height) -> width * height
+    | Rectangle(width, height) -> width * height
 
-let shapes = [
-    Circle 5.0
-    Rectangle (3.0, 4.0)
-]
+let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 
 let totalArea = shapes |> List.sumBy area
-
 ```
 
 This compiles to Python while preserving the semantic meaning. The discriminated

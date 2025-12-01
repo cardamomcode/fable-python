@@ -19,7 +19,6 @@ The converter is a simple state machine that processes input line by line:
 We track three possible states as we scan through the file:
 
 ```fsharp
-
 /// Represents the current state of the parser state machine.
 type ParserState =
     /// Inside a markdown block (** ... *)
@@ -28,34 +27,32 @@ type ParserState =
     | InCode
     /// Hidden section after (*** hide ***), content is skipped
     | Hidden
-
 ```
 
 ## Line Classification
 
-Each line is classified to determine how to handle it:
+Each line is classified using an active pattern to determine how to handle it.
+The pattern also extracts content from markdown start lines:
 
 ```fsharp
-
-/// Classification of a source line for the parser.
-type LineType =
-    /// Start of markdown block: (**
-    | MarkdownStart
-    /// End of markdown block: *)
-    | MarkdownEnd
-    /// Hide command: (*** hide ***)
-    | HideCommand
-    /// Any other content line
-    | ContentLine
-
-/// Classifies a line of source code into its LineType.
-let classifyLine (line: string) : LineType =
+/// Active pattern for classifying source lines.
+/// - `HideCmd`: The (*** hide ***) directive
+/// - `MarkdownSingle content`: Single-line markdown (** content *)
+/// - `MarkdownOpen content`: Start of markdown block, possibly with content
+/// - `MarkdownClose`: End of markdown block *)
+/// - `Content`: Any other line
+let (|HideCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
     let trimmed = line.Trim()
-    if trimmed = "(*** hide ***)" then HideCommand
-    elif trimmed.StartsWith("(**") then MarkdownStart
-    elif trimmed = "*)" then MarkdownEnd
-    else ContentLine
 
+    match trimmed with
+    | "(*** hide ***)" -> HideCmd
+    | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
+        MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
+    | s when s.StartsWith("(**") ->
+        let content = if s.Length > 3 then s.Substring(3).Trim() else ""
+        MarkdownOpen content
+    | "*)" -> MarkdownClose
+    | _ -> Content
 ```
 
 ## State Transitions
@@ -63,7 +60,6 @@ let classifyLine (line: string) : LineType =
 The heart of the parser - handling transitions between states:
 
 ```fsharp
-
 /// The parsing context that tracks state, buffered code, and output.
 type ParseContext = {
     /// Current parser state
@@ -81,79 +77,83 @@ let emptyContext = {
     Output = []
 }
 
-/// Checks if a code block contains only boilerplate (module/namespace declarations).
-let isBoilerplate (code: string) : bool =
-    let trimmed = code.Trim()
-    trimmed.StartsWith("module ") || trimmed.StartsWith("namespace ")
+/// Active pattern that matches strings starting with any of the given prefixes.
+let (|StartsWithAny|_|) (prefixes: string list) (s: string) =
+    let trimmed = s.Trim()
+
+    if prefixes |> List.exists trimmed.StartsWith then
+        Some()
+    else
+        None
+
+/// Boilerplate prefixes that should be excluded from code blocks.
+let boilerplatePrefixes = [ "module "; "namespace " ]
 
 /// Flushes the code buffer to output as a fenced code block.
 /// Skips empty or boilerplate-only code blocks.
 let flushCodeBuffer (ctx: ParseContext) : ParseContext =
-    if ctx.CodeBuffer.IsEmpty then ctx
+    if ctx.CodeBuffer.IsEmpty then
+        ctx
     else
-        let code = ctx.CodeBuffer |> List.rev |> String.concat "\n"
+        let code =
+            ctx.CodeBuffer
+            |> List.rev
+            |> String.concat "\n"
+            |> fun s -> s.Trim() // Remove leading/trailing empty lines
         // Skip empty, whitespace-only, or boilerplate code blocks
-        if code.Trim().Length = 0 || isBoilerplate code then
-            { ctx with CodeBuffer = [] }
-        else
+        match code with
+        | s when String.IsNullOrWhiteSpace s -> { ctx with CodeBuffer = [] }
+        | StartsWithAny boilerplatePrefixes -> { ctx with CodeBuffer = [] }
+        | _ ->
             // Add blank line before and after code block for markdown lint compliance
             let block = $"\n```fsharp\n{code}\n```\n\n"
-            { ctx with
-                CodeBuffer = []
-                Output = block :: ctx.Output }
+
+            {
+                ctx with
+                    CodeBuffer = []
+                    Output = block :: ctx.Output
+            }
 
 /// Processes a single line, updating the parse context based on state transitions.
 let processLine (ctx: ParseContext) (line: string) : ParseContext =
-    let lineType = classifyLine line
-    match ctx.State, lineType with
+    match ctx.State, line with
     // Entering hidden mode
-    | _, HideCommand ->
-        let flushed = flushCodeBuffer ctx
-        { flushed with State = Hidden }
+    | _, HideCmd -> { flushCodeBuffer ctx with State = Hidden }
 
-    // Starting markdown block
-    | InCode, MarkdownStart
-    | Hidden, MarkdownStart ->
+    // Single-line markdown: (** content *)
+    | (InCode | Hidden), MarkdownSingle content ->
         let flushed = flushCodeBuffer ctx
-        let trimmed = line.Trim()
-        // Handle single-line markdown: (** content *)
-        if trimmed.EndsWith("*)") && trimmed.Length > 5 then
-            let content = trimmed.Substring(3, trimmed.Length - 5).Trim()
-            { flushed with
-                State = InCode
-                Output = (content + "\n") :: flushed.Output }
-        // Handle (** with content on same line
-        elif trimmed.Length > 3 then
-            let content = trimmed.Substring(3).Trim()
-            if content.Length > 0 then
-                { flushed with
+
+        { flushed with Output = (content + "\n") :: flushed.Output }
+
+    // Starting markdown block with or without content
+    | (InCode | Hidden), MarkdownOpen content ->
+        let flushed = flushCodeBuffer ctx
+
+        if content.Length > 0 then
+            {
+                flushed with
                     State = InMarkdown
-                    Output = (content + "\n") :: flushed.Output }
-            else
-                { flushed with State = InMarkdown }
+                    Output = (content + "\n") :: flushed.Output
+            }
         else
             { flushed with State = InMarkdown }
 
     // Ending markdown block
-    | InMarkdown, MarkdownEnd ->
-        { ctx with State = InCode }
+    | InMarkdown, MarkdownClose -> { ctx with State = InCode }
 
     // Content inside markdown
-    | InMarkdown, ContentLine ->
-        { ctx with Output = (line + "\n") :: ctx.Output }
+    | InMarkdown, Content -> { ctx with Output = (line + "\n") :: ctx.Output }
 
     // Code line (not hidden)
-    | InCode, ContentLine ->
-        { ctx with CodeBuffer = line :: ctx.CodeBuffer }
+    | InCode, Content -> { ctx with CodeBuffer = line :: ctx.CodeBuffer }
 
     // Hidden content - skip
-    | Hidden, ContentLine -> ctx
-    | Hidden, MarkdownEnd -> ctx
+    | Hidden, (Content | MarkdownClose) -> ctx
 
     // Ignore markdown markers in wrong state
-    | InMarkdown, MarkdownStart -> ctx
-    | InCode, MarkdownEnd -> ctx
-
+    | InMarkdown, (MarkdownOpen _ | MarkdownSingle _) -> ctx
+    | InCode, MarkdownClose -> ctx
 ```
 
 ## Processing a File
@@ -161,17 +161,10 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
 Read all lines, process them, and return the Markdown output:
 
 ```fsharp
-
 /// Processes all lines from a literate F# file and returns the Markdown output.
 let processLines (lines: string seq) : string =
-    let finalCtx =
-        lines
-        |> Seq.fold processLine emptyContext
-        |> flushCodeBuffer  // Flush any remaining code
-    finalCtx.Output
-    |> List.rev
-    |> String.concat ""
-
+    let finalCtx = lines |> Seq.fold processLine emptyContext |> flushCodeBuffer // Flush any remaining code
+    finalCtx.Output |> List.rev |> String.concat ""
 ```
 
 ## Header Level Adjustment
@@ -180,25 +173,19 @@ For concatenating multiple chapters into a single document, we need to
 increase header levels (# becomes ##, ## becomes ###, etc.):
 
 ```fsharp
-
 /// Increases all markdown header levels by one (# becomes ##, etc.).
 /// Preserves headers inside fenced code blocks.
 let adjustHeaderLevels (markdown: string) : string =
     let lines = markdown.Split('\n')
-    let mutable inCodeBlock = false
-    lines
-    |> Array.map (fun line ->
-        if line.StartsWith("```") then
-            inCodeBlock <- not inCodeBlock
-            line
-        elif inCodeBlock then
-            line
-        elif line.StartsWith("#") then
-            "#" + line
-        else
-            line)
-    |> String.concat "\n"
 
+    let folder (inCodeBlock, acc) (line: string) =
+        match line with
+        | s when s.StartsWith("```") -> not inCodeBlock, line :: acc
+        | _ when inCodeBlock -> inCodeBlock, line :: acc
+        | s when s.StartsWith("#") -> inCodeBlock, ("#" + line) :: acc
+        | _ -> inCodeBlock, line :: acc
+
+    lines |> Array.fold folder (false, []) |> snd |> List.rev |> String.concat "\n"
 ```
 
 ## Python File I/O
@@ -206,7 +193,6 @@ let adjustHeaderLevels (markdown: string) : string =
 For Fable.Python, we use Python's file operations:
 
 ```fsharp
-
 /// Reads the entire contents of a file as a string.
 [<Emit("open($0, 'r').read()")>]
 let readFile (path: string) : string = nativeOnly
@@ -214,7 +200,6 @@ let readFile (path: string) : string = nativeOnly
 /// Prints a string to stdout without a trailing newline.
 [<Emit("print($0, end='')")>]
 let printRaw (s: string) : unit = nativeOnly
-
 ```
 
 ## Main Entry Point
@@ -222,7 +207,6 @@ let printRaw (s: string) : unit = nativeOnly
 Read the input file, convert it, and print the result:
 
 ```fsharp
-
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 [<EntryPoint>]
@@ -237,14 +221,15 @@ let main (args: string[]) =
         let content = readFile files.[0]
         let lines = content.Split('\n')
         let markdown = processLines lines
+
         let output =
             if hasFlag "--increase-headers" then
                 adjustHeaderLevels markdown
             else
                 markdown
+
         printRaw output
         0
-
 ```
 
 ## Building and Running
