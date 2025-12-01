@@ -17,3 +17,6 @@ dependencies = [
 dev = [
     "ruff>=0.14.7",
 ]
+
+[tool.ruff]
+exclude = ["fable_modules"]
