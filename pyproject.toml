@@ -1,7 +1,7 @@
 [project]
 name = "fable-python"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Fable Python F# Advent 2025"
 readme = "README.md"
 requires-python = ">=3.14"
 authors = [
@@ -9,7 +9,7 @@ authors = [
 ]
 license = {text = "ISC"}
 dependencies = [
-    "fable-library==5.0.0a17",
+    "fable-library==5.0.0a20",
     "pydantic>=2.12.5",
 ]
 

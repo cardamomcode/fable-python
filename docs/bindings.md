@@ -138,7 +138,7 @@ type HttpMethod =
     | [<CompiledName("PUT")>] Put
     | [<CompiledName("DELETE")>] Delete
 
-let method = HttpMethod.Get  // Compiles to: "GET"
+let method = HttpMethod.Get // Compiles to: "GET"
 ```
 
 The `[<CompiledName>]` attribute controls the exact string value.
@@ -151,9 +151,9 @@ Without `[<CompiledName>]`, you can use case rules:
 ```fsharp
 [<StringEnum(CaseRules.SnakeCase)>]
 type FileMode =
-    | ReadOnly     // Compiles to: "read_only"
-    | WriteOnly    // Compiles to: "write_only"
-    | ReadWrite    // Compiles to: "read_write"
+    | ReadOnly // Compiles to: "read_only"
+    | WriteOnly // Compiles to: "write_only"
+    | ReadWrite // Compiles to: "read_write"
 ```
 
 Available case rules: `None`, `LowerFirst`, `SnakeCase`, `KebabCase`.
@@ -166,11 +166,7 @@ For Python functions with keyword arguments, use `[<NamedParams>]`:
 [<Erase>]
 type IBuiltins =
     [<NamedParams(fromIndex = 1)>]
-    abstract ``open``:
-        file: string *
-        ?mode: string *
-        ?encoding: string ->
-            obj
+    abstract ``open``: file: string * ?mode: string * ?encoding: string -> obj
 ```
 
 This generates: `open(file, mode=..., encoding=...)`
@@ -183,9 +179,7 @@ For Python classes you want to inherit from or instantiate:
 
 ```fsharp
 [<Import("BaseModel", "pydantic")>]
-type BaseModel() =
-    class
-    end
+type BaseModel() = class end
 ```
 
 For classes with methods:

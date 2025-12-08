@@ -92,7 +92,7 @@ type Shape =
 let area shape =
     match shape with
     | Circle radius -> Math.PI * radius * radius
-    | Rectangle (width, height) -> width * height
+    | Rectangle(width, height) -> width * height
 ```
 
 The compiler will warn you if you forget to handle a case. No more runtime
@@ -148,14 +148,11 @@ result = sum(doubled)
 ```
 
 ```fsharp
-let numbers = [-1; 2; -3; 4; 5]
+let numbers = [ -1; 2; -3; 4; 5 ]
 
 // F# pipeline - reads left to right, top to bottom
 let result =
-    numbers
-    |> List.filter (fun x -> x > 0)
-    |> List.map (fun x -> x * 2)
-    |> List.sum
+    numbers |> List.filter (fun x -> x > 0) |> List.map (fun x -> x * 2) |> List.sum
 ```
 
 The `|>` operator takes the value on the left and passes it as the last
@@ -177,9 +174,7 @@ print(user.name)  # Runtime error if user is None!
 
 ```fsharp
 // F# Option - compiler ensures you handle None
-let findUser id : Person option =
-    if id = 1 then Some alice
-    else None
+let findUser id : Person option = if id = 1 then Some alice else None
 
 let displayName userId =
     match findUser userId with

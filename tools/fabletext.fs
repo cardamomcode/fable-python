@@ -57,17 +57,34 @@ Each line is classified using an active pattern to determine how to handle it.
 The pattern also extracts content from markdown start lines:
 *)
 
+/// Parses a comma-separated list of symbols from an include-python directive.
+let parseSymbolList (directive: string) : string list =
+    // Extract content between "(*** include-python:" and "***)"
+    let start = "(*** include-python:".Length
+    let endPos = directive.LastIndexOf("***)")
+    if endPos > start then
+        directive.Substring(start, endPos - start).Trim()
+        |> fun s -> s.Split(',')
+        |> Array.map (fun s -> s.Trim())
+        |> Array.filter (fun s -> s.Length > 0)
+        |> Array.toList
+    else
+        []
+
 /// Active pattern for classifying source lines.
 /// - `HideCmd`: The (*** hide ***) directive
+/// - `IncludePythonCmd symbols`: The (*** include-python: sym1, sym2 ***) directive
 /// - `MarkdownSingle content`: Single-line markdown (** content *)
 /// - `MarkdownOpen content`: Start of markdown block, possibly with content
 /// - `MarkdownClose`: End of markdown block *)
 /// - `Content`: Any other line
-let (|HideCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
+let (|HideCmd|IncludePythonCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
     let trimmed = line.Trim()
 
     match trimmed with
     | "(*** hide ***)" -> HideCmd
+    | s when s.StartsWith("(*** include-python:") && s.EndsWith("***)") ->
+        IncludePythonCmd(parseSymbolList s)
     | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
         MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
     | s when s.StartsWith("(**") ->
@@ -136,11 +153,110 @@ let flushCodeBuffer (ctx: ParseContext) : ParseContext =
                     Output = block :: ctx.Output
             }
 
+/// Mutable storage for Python file content (set via CLI argument).
+let mutable pythonFileContent: string option = None
+
+/// Checks if a line starts a new top-level definition (not indented).
+let isTopLevelDefinition (line: string) : bool =
+    not (String.IsNullOrWhiteSpace line)
+    && not (line.StartsWith " ")
+    && not (line.StartsWith "\t")
+    && not (line.StartsWith "#")
+
+/// Checks if a line is a decorator.
+let isDecorator (line: string) : bool =
+    line.TrimStart().StartsWith "@"
+
+/// Checks if a line is a dunder method definition.
+let isDunderMethod (line: string) : bool =
+    let trimmed = line.TrimStart()
+    trimmed.StartsWith "def __"
+
+/// Skips elements from the start of an array while the predicate is true.
+/// Workaround until Fable.Python supports Array.skipWhile.
+let arraySkipWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
+    match arr |> Array.tryFindIndex (predicate >> not) with
+    | Some idx -> arr[idx..]
+    | None -> [||]
+
+/// Takes elements from the start of an array while the predicate is true.
+/// Workaround until Fable.Python supports Array.takeWhile.
+let arrayTakeWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
+    match arr |> Array.tryFindIndex (predicate >> not) with
+    | Some idx -> arr[..idx - 1]
+    | None -> arr
+
+/// Extracts a single symbol definition from Python source lines.
+/// Returns the definition including any decorators, stopping before dunder methods.
+let extractSymbol (symbol: string) (lines: string array) : string option =
+    let symbolPatterns = [
+        $"{symbol} ="; $"{symbol}: "; $"def {symbol}("
+        $"class {symbol}("; $"class {symbol}:"
+    ]
+
+    let matchesSymbol (line: string) =
+        let trimmed = line.TrimStart()
+        symbolPatterns |> List.exists trimmed.StartsWith
+
+    lines
+    |> Array.tryFindIndex matchesSymbol
+    |> Option.map (fun defIndex ->
+        // Walk backwards to include decorators
+        let startIndex =
+            Seq.init defIndex (fun i -> defIndex - 1 - i)
+            |> Seq.tryFindBack (fun i -> not (isDecorator lines[i]))
+            |> Option.map ((+) 1)
+            |> Option.defaultValue 0
+
+        let defLine = lines[defIndex].TrimStart()
+        let isMultiline = defLine.StartsWith "class " || defLine.StartsWith "def "
+
+        if not isMultiline then
+            lines[defIndex]
+        else
+            // Take lines until we hit a new top-level def or dunder method
+            let shouldStop idx (line: string) =
+                idx > defIndex && (isTopLevelDefinition line || isDunderMethod line)
+
+            lines[startIndex..]
+            |> Array.indexed
+            |> arrayTakeWhile (fun (i, line) -> not (shouldStop (startIndex + i) line))
+            |> Array.map snd
+            |> Array.rev
+            |> arraySkipWhile String.IsNullOrWhiteSpace
+            |> Array.rev
+            |> String.concat "\n"
+    )
+
+/// Extracts multiple symbols and combines them.
+let extractSymbols (symbols: string list) (pythonContent: string) : string =
+    let lines = pythonContent.Split('\n')
+    symbols
+    |> List.choose (fun sym -> extractSymbol sym lines)
+    |> String.concat "\n\n"
+
 /// Processes a single line, updating the parse context based on state transitions.
 let processLine (ctx: ParseContext) (line: string) : ParseContext =
     match ctx.State, line with
     // Entering hidden mode
     | _, HideCmd -> { flushCodeBuffer ctx with State = Hidden }
+
+    // Include Python symbols from transpiled output
+    | (InCode | Hidden), IncludePythonCmd symbols ->
+        let flushed = flushCodeBuffer ctx
+        match pythonFileContent with
+        | Some pythonContent ->
+            let extracted = extractSymbols symbols pythonContent
+            if extracted.Length > 0 then
+                let block = $"\nThis generates:\n\n```python\n{extracted}\n```\n\n"
+                { flushed with Output = block :: flushed.Output }
+            else
+                flushed // No symbols found, emit nothing
+        | None ->
+            // No Python file provided, emit a placeholder comment
+            let symbolList = String.concat ", " symbols
+            let placeholder = $"\n<!-- include-python: {symbolList} (no --python-file provided) -->\n"
+            { flushed with Output = placeholder :: flushed.Output }
 
     // Single-line markdown: (** content *)
     | (InCode | Hidden), MarkdownSingle content ->
@@ -174,7 +290,7 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
     | Hidden, (Content | MarkdownClose) -> ctx
 
     // Ignore markdown markers in wrong state
-    | InMarkdown, (MarkdownOpen _ | MarkdownSingle _) -> ctx
+    | InMarkdown, (MarkdownOpen _ | MarkdownSingle _ | IncludePythonCmd _) -> ctx
     | InCode, MarkdownClose -> ctx
 
 (**
@@ -229,17 +345,38 @@ let printRaw (s: string) : unit = nativeOnly
 Read the input file, convert it, and print the result:
 *)
 
+/// Gets the value following a flag argument (e.g., --python-file path.py).
+let getFlagValue (flag: string) (args: string[]) : string option =
+    args
+    |> Array.tryFindIndex ((=) flag)
+    |> Option.bind (fun i ->
+        if i + 1 < args.Length then Some args.[i + 1] else None)
+
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
+/// Use --python-file <path> to enable include-python directives.
 [<EntryPoint>]
 let main (args: string[]) =
     let hasFlag flag = args |> Array.contains flag
-    let files = args |> Array.filter (fun a -> not (a.StartsWith("--")))
+    let pythonFilePath = getFlagValue "--python-file" args
+    // Filter out flags and their values
+    let files =
+        args
+        |> Array.indexed
+        |> Array.filter (fun (i, a) ->
+            not (a.StartsWith "--")
+            && not (i > 0 && args.[i - 1] = "--python-file"))
+        |> Array.map snd
 
     if files.Length < 1 then
-        printfn "Usage: python fabletext.py [--increase-headers] <input.fs>"
+        printfn "Usage: python fabletext.py [--increase-headers] [--python-file <path.py>] <input.fs>"
         1
     else
+        // Load Python file content if provided
+        pythonFileContent <-
+            pythonFilePath
+            |> Option.map readFile
+
         let content = readFile files.[0]
         let lines = content.Split('\n')
         let markdown = processLines lines

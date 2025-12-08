@@ -4,6 +4,68 @@ Understanding what works and what doesn't is crucial when targeting Python
 with Fable. This chapter covers supported features, limitations, and
 important differences from .NET.
 
+## Common Types and Objects
+
+Some F#/.NET types have counterparts in Python. Fable takes advantage of this
+to compile to native types that are more performant and reduce code size.
+The most important common types are:
+
+|       F#/.NET Type       |  Python Type  |              Notes              |
+| ------------------------ | ------------- | ------------------------------- |
+| `string`                 | `str`         | Behaves the same                |
+| `bool`                   | `bool`        | Behaves the same                |
+| `char`                   | `str`         | Compiled as string of length 1  |
+| `Tuple`                  | `tuple`       | Native Python tuple             |
+| `ResizeArray<T>`         | `list`        | Native Python list              |
+| `Dictionary<K,V>`        | `dict`        | Native Python dict              |
+| `seq<T>` / `IEnumerable` | iterator      | Uses `__iter__` protocol        |
+| `Array`                  | `FSharpArray` | Custom wrapper for F# semantics |
+
+## .NET Base Class Library
+
+Fable provides support for some .NET BCL classes. The following are translated
+to Python with most methods available:
+
+|                  .NET Type                   | Python Type |
+| -------------------------------------------- | ----------- |
+| `System.String`                              | `str`       |
+| `System.Boolean`                             | `bool`      |
+| `System.Char`                                | `str`       |
+| `System.DateTime`                            | `datetime`  |
+| `System.Decimal`                             | `decimal`   |
+| `System.Collections.Generic.List<T>`         | `list`      |
+| `System.Collections.Generic.Dictionary<K,V>` | `dict`      |
+
+## FSharp.Core
+
+Most FSharp.Core operators are supported, including formatting with `sprintf`,
+`printfn`, and `failwithf`. The following types from FSharp.Core translate to Python:
+
+|      F# Type      |           Python           |
+| ----------------- | -------------------------- |
+| `Tuple`           | `tuple`                    |
+| `Option<T>`       | erased (see caveats)       |
+| `string`          | `str`                      |
+| `List<T>`         | `List.fs` (immutable list) |
+| `Map<K,V>`        | `Map.fs` (immutable map)   |
+| `Set<T>`          | `Set.fs` (immutable set)   |
+| `ResizeArray<T>`  | `list`                     |
+| Record types      | `@dataclass`               |
+| Anonymous Records | `dict`                     |
+
+## Interfaces and Protocols
+
+.NET interfaces map to Python protocols and special methods:
+
+| .NET Interface |          Python          |               Purpose               |
+| -------------- | ------------------------ | ----------------------------------- |
+| `IEquatable`   | `__eq__`                 | Equality comparison                 |
+| `IEnumerator`  | `__next__`               | Iterator protocol                   |
+| `IEnumerable`  | `__iter__`               | For-loop iteration                  |
+| `IComparable`  | `__lt__` + `__eq__`      | Ordering and sorting                |
+| `IDisposable`  | `__enter__` + `__exit__` | Context managers (`with` statement) |
+| `ToString()`   | `__str__`                | String representation               |
+
 ## Fully Supported Features
 
 ### Core Types
@@ -25,6 +87,20 @@ let numbers = [ 1; 2; 3; 4; 5 ]
 
 // ResizeArray -> Python list (native)
 let mutableList = ResizeArray<int>()
+```
+
+This generates:
+
+```python
+greeting: str = "Hello, Python!"
+
+is_enabled: bool = True
+
+coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
+
+numbers: FSharpList[int32] = of_array(
+
+mutable_list: list[int32] = []
 ```
 
 ### Functions and Lambdas
@@ -76,6 +152,127 @@ let person = {
     Age = 30
     Email = Some "alice@example.com"
 }
+```
+
+This generates:
+
+```python
+from abc import abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, Protocol
+from fable_library.array_ import map as map_1
+from fable_library.array_ import Array, Int32Array
+from fable_library.list import of_array, FSharpList, sum, map, filter
+from fable_library.map import of_list as of_list_1
+from fable_library.range import range_big_int
+from fable_library.reflection import (
+    TypeInfo,
+    union_type,
+    string_type,
+    int32_type,
+    option_type,
+    record_type,
+    float64_type,
+    class_type,
+)
+from fable_library.seq import to_list
+from fable_library.set import of_list
+from fable_library.types import float64, int32, Union, Record
+from fable_library.util import int32 as int32_1, compare_primitives
+
+greeting: str = "Hello, Python!"
+
+is_enabled: bool = True
+
+coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
+
+numbers: FSharpList[int32] = of_array(
+    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
+)
+
+mutable_list: list[int32] = []
+
+
+def add(x: int32, y: int32) -> int32:
+    return x + y
+
+
+def multiply(x: int32, y: int32) -> int32:
+    return x * y
+
+
+def apply_twice[_A](f: Callable[[_A], _A], x: _A) -> _A:
+    return f(f(x))
+
+
+def _arrow30(y: int32) -> int32:
+    return add(int32.ONE, y)
+
+
+result: int32 = apply_twice(_arrow30, int32.FIVE)
+
+
+def _expr31(gen0: TypeInfo, gen1: TypeInfo) -> TypeInfo:
+    return union_type(
+        "Compatibility.Result`2",
+        [gen0, gen1],
+        Result_2,
+        lambda: [[("Item", gen0)], [("Item", gen1)]],
+    )
+
+
+class Result_2[E, T](Union):
+    def __init__(self, tag: int32, *fields: Any) -> None:
+        super().__init__()
+        self.tag: int32 = tag
+        self.fields: Array[Any] = Array[Any](fields)
+
+    @staticmethod
+    def cases() -> list[str]:
+        return ["Ok", "Error"]
+
+
+Result_2_reflection = _expr31
+
+
+def handle_result[_A, _B](result_1: Result_2[Any, Any]) -> str:
+    if result_1.tag == int32_1(1):
+        return ("Failed: " + str(result_1.fields[int32_1(0)])) + ""
+
+    else:
+        return ("Success: " + str(result_1.fields[int32_1(0)])) + ""
+
+
+def active_pattern_example(input: int32) -> str:
+    if input > int32.ZERO:
+        return "positive"
+
+    elif input < int32.ZERO:
+        return "negative"
+
+    else:
+        return "zero"
+
+
+def _expr32() -> TypeInfo:
+    return record_type(
+        "Compatibility.Person",
+        [],
+        Person,
+        lambda: [
+            ("name", string_type),
+            ("age", int32_type),
+            ("email", option_type(string_type)),
+        ],
+    )
+
+
+@dataclass(eq=False, repr=False, slots=True)
+class Person(Record):
+    name: str
+    age: int32
+    email: str | None
 ```
 
 ### Discriminated Unions
@@ -139,8 +336,9 @@ let someValue = Some 42 // Compiles to just: 42
 let noneValue = None // Compiles to: None
 ```
 
-This works fine for most cases, but be careful with nested options -
-`Some None` vs `None` can be ambiguous.
+Note that Fable.Python uses a `SomeWrapper` class to handle nested options correctly.
+`Some None` compiles to `SomeWrapper(None)`, which is distinct from plain `None`.
+This means `Some (Some x)`, `Some None`, and `None` are all properly distinguishable.
 
 ### Multi-line Lambdas
 
@@ -161,12 +359,37 @@ let processed =
 
 ### Numeric Types
 
-Most numerics use custom wrappers to maintain F# semantics. `bigint` uses
-Python's native `int`:
+Numeric types in Fable.Python are implemented using custom PyO3 wrapper types
+written in Rust. These wrappers maintain F#-style semantics (like proper overflow
+behavior) while integrating seamlessly with Python.
+
+|       F# Type        | .NET Type  | Python Type |                 Notes                  |
+| -------------------- | ---------- | ----------- | -------------------------------------- |
+| `int`                | Int32      | Int32       | Custom wrapper with overflow semantics |
+| `int64`              | Int64      | Int64       | Custom wrapper                         |
+| `int16`              | Int16      | Int16       | Custom wrapper                         |
+| `byte`               | Byte       | UInt8       | Custom wrapper                         |
+| `sbyte`              | SByte      | Int8        | Custom wrapper                         |
+| `uint16`             | UInt16     | UInt16      | Custom wrapper                         |
+| `uint32`             | UInt32     | UInt32      | Custom wrapper                         |
+| `uint64`             | UInt64     | UInt64      | Custom wrapper                         |
+| `float` / `double`   | Double     | Float64     | Custom wrapper                         |
+| `float32` / `single` | Single     | Float32     | Custom wrapper                         |
+| `bigint`             | BigInteger | int         | Native Python type                     |
+| `nativeint`          | IntPtr     | int         | Native Python type                     |
+
+The wrapper types ensure type safety and correct arithmetic behavior:
 
 ```fsharp
 let small: int = 42
 let big: bigint = 12345678901234567890I
+
+// Wrapper types maintain proper overflow semantics
+let maxInt: int = System.Int32.MaxValue
+let wrapped: int = maxInt + 1 // Wraps around like .NET
+
+// bigint uses Python's native arbitrary-precision int
+let huge: bigint = 999999999999999999999999999999I
 ```
 
 ### Computation Expressions

@@ -36,95 +36,15 @@ For basic JSON operations, use Python's built-in `json` module:
 open Fable.Python.Json
 
 // Serialize F# data to JSON string
-let data = {| name = "Alice"; age = 30 |}
+let data = {|
+    name = "Alice"
+    age = 30
+|}
 ```
 
 Anonymous records (`{| ... |}`) are perfect for JSON - they compile to
-Python dictionaries.
-
-## Working with Python Types
-
-### F# to Python Type Mapping
-
-Understanding how types map helps you work with Python libraries:
-
-| F# Type | Python Type | Notes |
-| ------- | ----------- | ----- |
-| `string` | `str` | Direct mapping |
-| `int` | `int` | Via fable-library wrapper |
-| `float` | `float` | Via fable-library wrapper |
-| `bool` | `bool` | Direct mapping |
-| `unit` | `None` | Void/nothing |
-| `'T option` | `T \| None` | Erased - `Some x` becomes just `x` |
-| `'T list` | `list` | Immutable F# list |
-| `'T array` | `list` | Mutable array |
-| `ResizeArray<'T>` | `list` | Python's native list |
-| `Map<K,V>` | `dict`-like | F# immutable map |
-| Record | `dataclass` | F# records become dataclasses |
-| Tuple | `tuple` | Direct mapping |
-
-### Lists and Arrays
-
-```fsharp
-// F# list - immutable, compiles to Python list
-let numbers = [ 1; 2; 3; 4; 5 ]
-
-// Array - mutable, also compiles to Python list
-let mutableNumbers = [| 1; 2; 3 |]
-
-// ResizeArray - Python's native list type
-let pythonList = ResizeArray<int>()
-pythonList.Add(1)
-pythonList.Add(2)
-```
-
-### Tuples
-
-F# tuples map directly to Python tuples:
-
-```fsharp
-let point = (10, 20)
-let x, y = point
-
-// Tuples work great for multiple return values
-let divmod a b = (a / b, a % b)
-let quotient, remainder = divmod 17 5
-```
-
-### Anonymous Records as Dictionaries
-
-Anonymous records are ideal for creating Python dictionaries:
-
-```fsharp
-let config =
-    {| host = "localhost"
-       port = 8080
-       debug = true |}
-```
-
-This compiles to a Python dict: `{"host": "localhost", "port": 8080, "debug": True}`
-
-### Option Types
-
-F# `option` types are *erased* at runtime for efficiency:
-
-```fsharp
-let maybeName: string option = Some "Alice"
-// In Python, this is just: "Alice"
-
-let noName: string option = None
-// In Python, this is: None
-```
-
-This means `Some value` becomes just `value` in Python, and `None` stays `None`.
-Pattern matching still works perfectly in F#:
-
-```fsharp
-let greet nameOpt =
-    match nameOpt with
-    | Some name -> $"Hello, {name}!"
-    | None -> "Hello, stranger!"
-```
+Python dictionaries. See the Compatibility chapter for details on how F#
+types map to Python types.
 
 ## Calling Python Functions
 
@@ -162,7 +82,7 @@ Use `os.getenv` to safely retrieve environment variables:
 
 ```fsharp
 let home = os.getenv ("HOME", "")
-let user = os.getenv "USER"  // Returns string option
+let user = os.getenv "USER" // Returns string option
 ```
 
 ## File Operations
@@ -209,6 +129,265 @@ let handleDynamic (value: obj) =
     | _ -> "Got something else"
 ```
 
+## Importing Python Modules
+
+Fable provides several ways to import Python modules and functions.
+
+### Using import Functions
+
+The `import` function lets you import a specific member from a module:
+
+```fsharp
+open Fable.Core.PyInterop
+
+// Import a specific function from a module
+let add5: int -> int = import "add5" "my_module"
+
+// Import all exports as an interface
+type IMathModule =
+    abstract add: int -> int -> int
+    abstract multiply: int -> int -> int
+
+let mathModule: IMathModule = importAll "math_utils"
+```
+
+### Using Import Attributes
+
+For module-level imports, use attributes:
+
+```fsharp
+[<ImportAll("my_native_module")>]
+let nativeModule: IMathModule = nativeOnly
+```
+
+The `nativeOnly` value is a placeholder - Fable replaces it with the actual import.
+
+## Emit: Inline Python Code
+
+When you need to write raw Python code, use `Emit`:
+
+### The Emit Attribute
+
+```fsharp
+[<Emit("len($0)")>]
+let pyLen (x: 'a) : int = nativeOnly
+
+[<Emit("$0 + $1")>]
+let pyAdd (x: int) (y: int) : int = nativeOnly
+
+[<Emit("isinstance($0, $1)")>]
+let pyIsInstance (obj: obj) (typ: obj) : bool = nativeOnly
+```
+
+The `$0`, `$1`, etc. are placeholders for the function arguments.
+
+### emitPyExpr for Inline Expressions
+
+For one-off expressions without defining a function:
+
+```fsharp
+let two: int = emitPyExpr (1, 1) "$0 + $1"
+let hello: string = emitPyExpr () "\"Hello\""
+```
+
+### emitPyStatement for Multi-line Code
+
+For more complex Python code with statements:
+
+```fsharp
+let factorial (count: int) : int =
+    emitPyStatement
+        count """if $0 < 2:
+        return 1
+    else:
+        return $0 * factorial($0 - 1)
+"""
+```
+
+## StringEnum: Type-Safe String Constants
+
+`StringEnum` creates discriminated unions that compile to Python strings:
+
+```fsharp
+[<StringEnum>]
+type Direction =
+    | North
+    | South
+    | [<CompiledName("E")>] East  // Custom string value
+    | West
+
+// North compiles to "north", East compiles to "E"
+```
+
+### StringEnum with Case Rules
+
+Control the string format with `CaseRules`:
+
+```fsharp
+[<StringEnum(CaseRules.SnakeCase)>]
+type UserStatus =
+    | ActiveUser      // -> "active_user"
+    | InactiveUser    // -> "inactive_user"
+
+[<StringEnum(CaseRules.KebabCase)>]
+type CssBoxSizing =
+    | ContentBox      // -> "content-box"
+    | BorderBox       // -> "border-box"
+```
+
+Available case rules: `None`, `LowerFirst`, `SnakeCase`, `SnakeCaseAllCaps`, `KebabCase`, `LowerAll`.
+
+## Erased Unions
+
+Erased unions let you create type-safe wrappers that disappear at runtime:
+
+```fsharp
+[<Erase>]
+type StringOrInt =
+    | AsString of string
+    | AsInt of int
+    member this.Describe() =
+        match this with
+        | AsString s -> $"String: {s}"
+        | AsInt n -> $"Int: {n}"
+
+// AsString "hello" compiles to just "hello" in Python
+// AsInt 42 compiles to just 42
+```
+
+This is useful for APIs that accept multiple types (like Python's duck typing).
+
+## Python Decorators
+
+Fable.Python supports Python decorators through several mechanisms.
+
+### Creating F#-Side Decorators
+
+You can create custom decorators that wrap functions at compile time:
+
+```fsharp
+type LogAttribute(msg: string) =
+    inherit Py.DecoratorAttribute()
+    override _.Decorate(fn) =
+        Py.argsFunc (fun args ->
+            printfn $"LOG: {msg}"
+            fn.Invoke(args))
+
+[<Log("calling myFunction")>]
+let myFunction x = x + 1
+```
+
+### Using Py.Decorate for Python Decorators
+
+Apply Python decorators to classes using `Py.Decorate`. The attribute takes
+the decorator name, the module to import from, and optional parameters:
+
+```fsharp
+[<Py.Decorate("dataclass", "dataclasses")>]
+[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes, false)>]
+type DecoratedUser() =
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
+```
+
+This generates:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class DecoratedUser:
+    Name: str = ""
+    Age: int = 0
+```
+
+## Class Attributes and DataClasses
+
+### Py.ClassAttributes
+
+Control how class members are generated for Python frameworks like Pydantic:
+
+```fsharp
+[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes, false)>]
+type PydanticModel() =
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
+```
+
+This generates class-level type annotations suitable for Pydantic:
+
+```python
+class PydanticModel:
+    Name: str = ""
+    Age: int = 0
+```
+
+### Py.DataClass Shorthand
+
+`Py.DataClass` is shorthand for `ClassAttributes(Attributes, false)`:
+
+```fsharp
+[<Py.DataClass>]
+type User2() =
+    member val Username: string = "" with get, set
+    member val Email: string = "" with get, set
+```
+
+### AttachMembers
+
+Use `AttachMembers` to generate Python-style classes with methods directly attached:
+
+```fsharp
+[<AttachMembers>]
+type Counter(initial: int) =
+    let mutable count = initial
+
+    member _.Count = count
+    member _.Increment() = count <- count + 1
+    member _.Decrement() = count <- count - 1
+```
+
+## Global Bindings
+
+Bind to Python global objects with the `Global` attribute:
+
+```fsharp
+[<Global("list")>]
+type PyList =
+    [<Emit("$0.append($1)")>]
+    abstract append: item: obj -> unit
+    [<Emit("len($0)")>]
+    abstract length: int
+```
+
+## Keyword Arguments with ParamObject
+
+Use `ParamObject` to generate Python keyword arguments:
+
+```fsharp
+[<Erase>]
+type IHttpClient =
+    [<ParamObject(1)>]
+    abstract fetch: url: string * ?timeout: int * ?headers: obj -> obj
+```
+
+When called as `client.fetch("http://...", timeout=30)`, this generates
+Python code with keyword arguments: `client.fetch("http://...", timeout=30)`.
+
+## createEmpty for Dynamic Objects
+
+Create empty objects that can have properties set dynamically:
+
+```fsharp
+type IConfig =
+    abstract host: string with get, set
+    abstract port: int with get, set
+
+let config = createEmpty<IConfig>
+// config.host <- "localhost"
+// config.port <- 8080
+```
+
 ## Practical Example: Reading JSON Config
 
 Here's a complete example combining several concepts:
@@ -222,6 +401,6 @@ let loadConfig (path: string) =
 
 ## What's Next?
 
-Now you know how to use existing Python bindings. In the next chapter,
-we'll learn how to create your own bindings for Python libraries that
-don't have F# bindings yet.
+Now you know how to use existing Python bindings and core interop features.
+In the next chapter, we'll learn how to create your own bindings for
+Python libraries that don't have F# bindings yet.
