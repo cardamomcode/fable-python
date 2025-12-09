@@ -48,7 +48,7 @@ let speed = distance / time // Automatically inferred as float<m/s>
 
 (**
 The compiler tracks units through all operations. Division of meters by
-seconds gives meters-per-second. This is all checked at compile time!
+seconds gives meters-per-second. This is all checked at compile time.
 
 ## Preventing Errors
 
@@ -58,7 +58,7 @@ Try to add incompatible units and the compiler stops you:
 let distance = 100.0<m>
 let mass = 50.0<kg>
 
-// This won't compile!
+// This won't compile:
 // let nonsense = distance + mass
 // Error: The unit of measure 'm' does not match 'kg'
 ```

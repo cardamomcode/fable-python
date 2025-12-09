@@ -1,8 +1,7 @@
 # F# Compatibility in Fable.Python
 
-Understanding what works and what doesn't is crucial when targeting Python
-with Fable. This chapter covers supported features, limitations, and
-important differences from .NET.
+This chapter covers supported features, limitations, and important differences
+from .NET when targeting Python with Fable.
 
 ## Common Types and Objects
 
@@ -89,8 +88,6 @@ let numbers = [ 1; 2; 3; 4; 5 ]
 let mutableList = ResizeArray<int>()
 ```
 
-This generates:
-
 ```python
 greeting: str = "Hello, Python!"
 
@@ -103,6 +100,11 @@ numbers: FSharpList[int32] = of_array(
 mutable_list: list[int32] = []
 ```
 
+Each of these F# values compiles to its Python equivalent. Strings become `str`,
+booleans become `bool`, and tuples become Python tuples. The F# `list` uses the
+fable-library implementation for immutable semantics, while `ResizeArray`
+compiles directly to Python's mutable `list`.
+
 ### Functions and Lambdas
 
 First-class functions work as expected:
@@ -114,6 +116,10 @@ let multiply = fun x y -> x * y
 let applyTwice f x = f (f x)
 let result = applyTwice (add 1) 5 // 7
 ```
+
+Functions are first-class values in F#. The `applyTwice` function takes another
+function `f` as a parameter and applies it twice. Partial application works
+naturally - `(add 1)` creates a new function that adds 1 to its argument.
 
 ### Pattern Matching
 
@@ -154,120 +160,7 @@ let person = {
 }
 ```
 
-This generates:
-
 ```python
-from abc import abstractmethod
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, Protocol
-from fable_library.array_ import map as map_1
-from fable_library.array_ import Array, Int32Array
-from fable_library.list import of_array, FSharpList, sum, map, filter
-from fable_library.map import of_list as of_list_1
-from fable_library.range import range_big_int
-from fable_library.reflection import (
-    TypeInfo,
-    union_type,
-    string_type,
-    int32_type,
-    option_type,
-    record_type,
-    float64_type,
-    class_type,
-)
-from fable_library.seq import to_list
-from fable_library.set import of_list
-from fable_library.types import float64, int32, Union, Record
-from fable_library.util import int32 as int32_1, compare_primitives
-
-greeting: str = "Hello, Python!"
-
-is_enabled: bool = True
-
-coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
-
-numbers: FSharpList[int32] = of_array(
-    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
-)
-
-mutable_list: list[int32] = []
-
-
-def add(x: int32, y: int32) -> int32:
-    return x + y
-
-
-def multiply(x: int32, y: int32) -> int32:
-    return x * y
-
-
-def apply_twice[_A](f: Callable[[_A], _A], x: _A) -> _A:
-    return f(f(x))
-
-
-def _arrow30(y: int32) -> int32:
-    return add(int32.ONE, y)
-
-
-result: int32 = apply_twice(_arrow30, int32.FIVE)
-
-
-def _expr31(gen0: TypeInfo, gen1: TypeInfo) -> TypeInfo:
-    return union_type(
-        "Compatibility.Result`2",
-        [gen0, gen1],
-        Result_2,
-        lambda: [[("Item", gen0)], [("Item", gen1)]],
-    )
-
-
-class Result_2[E, T](Union):
-    def __init__(self, tag: int32, *fields: Any) -> None:
-        super().__init__()
-        self.tag: int32 = tag
-        self.fields: Array[Any] = Array[Any](fields)
-
-    @staticmethod
-    def cases() -> list[str]:
-        return ["Ok", "Error"]
-
-
-Result_2_reflection = _expr31
-
-
-def handle_result[_A, _B](result_1: Result_2[Any, Any]) -> str:
-    if result_1.tag == int32_1(1):
-        return ("Failed: " + str(result_1.fields[int32_1(0)])) + ""
-
-    else:
-        return ("Success: " + str(result_1.fields[int32_1(0)])) + ""
-
-
-def active_pattern_example(input: int32) -> str:
-    if input > int32.ZERO:
-        return "positive"
-
-    elif input < int32.ZERO:
-        return "negative"
-
-    else:
-        return "zero"
-
-
-def _expr32() -> TypeInfo:
-    return record_type(
-        "Compatibility.Person",
-        [],
-        Person,
-        lambda: [
-            ("name", string_type),
-            ("age", int32_type),
-            ("email", option_type(string_type)),
-        ],
-    )
-
-
 @dataclass(eq=False, repr=False, slots=True)
 class Person(Record):
     name: str

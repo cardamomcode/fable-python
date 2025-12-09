@@ -62,6 +62,9 @@ let length = builtins.len [ 1; 2; 3 ]
 let absValue = builtins.abs (-42)
 
 (**
+The `builtins` module provides typed access to Python's built-in functions.
+These calls compile directly to `len([1, 2, 3])` and `abs(-42)` in Python.
+
 ### Working with sys Module
 *)
 
@@ -79,6 +82,9 @@ let fileName = os.path.basename "/path/to/file.txt"
 let dirName = os.path.dirname "/path/to/file.txt"
 
 (**
+The `os.path` functions work with arrays of path segments. These compile to
+Python's `os.path.join`, `os.path.basename`, and `os.path.dirname` calls.
+
 ## Environment Variables
 
 Use `os.getenv` to safely retrieve environment variables:
@@ -292,18 +298,11 @@ type DecoratedUser() =
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
 
+(** This generates: *)
+
+(*** include-python: DecoratedUser ***)
+
 (**
-This generates:
-
-```python
-from dataclasses import dataclass
-
-@dataclass
-class DecoratedUser:
-    Name: str = ""
-    Age: int = 0
-```
-
 ## Class Attributes and DataClasses
 
 ### Py.ClassAttributes
@@ -316,15 +315,11 @@ type PydanticModel() =
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
 
+(** This generates class-level type annotations suitable for Pydantic: *)
+
+(*** include-python: PydanticModel ***)
+
 (**
-This generates class-level type annotations suitable for Pydantic:
-
-```python
-class PydanticModel:
-    Name: str = ""
-    Age: int = 0
-```
-
 ### Py.DataClass Shorthand
 
 `Py.DataClass` is shorthand for `ClassAttributes(Attributes, false)`:

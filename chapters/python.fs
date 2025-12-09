@@ -3,9 +3,9 @@ module ForPythonDevelopers
 (**
 # Are You a Python Developer?
 
-If you're coming from Python, welcome! This chapter will help you understand
-the F# code you'll see throughout this guide. Don't worry - F# is more
-approachable than it might first appear, and many concepts will feel familiar.
+If you're coming from Python, welcome. This chapter will help you understand
+the F# code you'll see throughout this guide. F# is more approachable than
+it might appear, and many concepts are familiar.
 
 ## What is F#?
 
@@ -104,8 +104,8 @@ let area shape =
     | Rectangle(width, height) -> width * height
 
 (**
-The compiler will warn you if you forget to handle a case. No more runtime
-`AttributeError` because you forgot a shape type!
+The compiler warns you if you forget to handle a case. No more runtime
+`AttributeError` because you forgot a shape type.
 
 ### Records
 

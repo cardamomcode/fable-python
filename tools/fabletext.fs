@@ -28,6 +28,7 @@ The converter is a simple state machine that processes input line by line:
 - Lines inside `(** ... *)` blocks are emitted as Markdown
 - F# code outside those blocks is wrapped in fenced code blocks
 - `(*** hide ***)` sections are excluded from output
+- `(*** include-python: symbol1, symbol2 ***)` extracts generated Python code
 
 *)
 
@@ -56,6 +57,23 @@ type ParserState =
 Each line is classified using an active pattern to determine how to handle it.
 The pattern also extracts content from markdown start lines:
 *)
+
+/// Converts a camelCase string to snake_case.
+/// Uses the same algorithm as Fable's dashify function.
+/// PascalCase names (starting with uppercase) are preserved as-is.
+let toPythonNaming (name: string) : string =
+    if name.Length > 0 && Char.IsLower(name.[0]) then
+        System.Text.RegularExpressions.Regex.Replace(
+            name,
+            "[a-z]?[A-Z]",
+            fun m ->
+                if m.Value.Length = 1 then
+                    m.Value.ToLowerInvariant()
+                else
+                    m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+        )
+    else
+        name
 
 /// Parses a comma-separated list of symbols from an include-python directive.
 let parseSymbolList (directive: string) : string list =
@@ -190,8 +208,9 @@ let arrayTakeWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
 /// Returns the definition including any decorators, stopping before dunder methods.
 let extractSymbol (symbol: string) (lines: string array) : string option =
     let symbolPatterns = [
-        $"{symbol} ="; $"{symbol}: "; $"def {symbol}("
-        $"class {symbol}("; $"class {symbol}:"
+        $"{symbol} ="; $"{symbol}: "
+        $"def {symbol}("; $"def {symbol}["  // Generic functions use [T] syntax
+        $"class {symbol}("; $"class {symbol}:"; $"class {symbol}["
     ]
 
     let matchesSymbol (line: string) =
@@ -202,9 +221,10 @@ let extractSymbol (symbol: string) (lines: string array) : string option =
     |> Array.tryFindIndex matchesSymbol
     |> Option.map (fun defIndex ->
         // Walk backwards to include decorators
+        // Find the first non-decorator line above defIndex, then start after it
         let startIndex =
             Seq.init defIndex (fun i -> defIndex - 1 - i)
-            |> Seq.tryFindBack (fun i -> not (isDecorator lines[i]))
+            |> Seq.tryFind (fun i -> not (isDecorator lines[i]))
             |> Option.map ((+) 1)
             |> Option.defaultValue 0
 
@@ -229,10 +249,11 @@ let extractSymbol (symbol: string) (lines: string array) : string option =
     )
 
 /// Extracts multiple symbols and combines them.
+/// Converts F# symbol names to Python naming conventions.
 let extractSymbols (symbols: string list) (pythonContent: string) : string =
     let lines = pythonContent.Split('\n')
     symbols
-    |> List.choose (fun sym -> extractSymbol sym lines)
+    |> List.choose (fun sym -> extractSymbol (toPythonNaming sym) lines)
     |> String.concat "\n\n"
 
 /// Processes a single line, updating the parse context based on state transitions.
@@ -248,7 +269,7 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
         | Some pythonContent ->
             let extracted = extractSymbols symbols pythonContent
             if extracted.Length > 0 then
-                let block = $"\nThis generates:\n\n```python\n{extracted}\n```\n\n"
+                let block = $"\n```python\n{extracted}\n```\n\n"
                 { flushed with Output = block :: flushed.Output }
             else
                 flushed // No symbols found, emit nothing
@@ -303,6 +324,29 @@ Read all lines, process them, and return the Markdown output:
 let processLines (lines: string seq) : string =
     let finalCtx = lines |> Seq.fold processLine emptyContext |> flushCodeBuffer // Flush any remaining code
     finalCtx.Output |> List.rev |> String.concat ""
+
+(**
+## Including Generated Python Code
+
+One of Fabletext's unique features is the ability to show the generated Python
+alongside the F# source. The include-python directive extracts specific symbols
+from the transpiled output.
+
+When you pass --python-file path to fabletext, it reads the transpiled
+Python and extracts the named symbols (functions, classes, or variables).
+This lets readers see exactly what Python code Fable generates from the F#.
+
+The extraction is smart about Python syntax:
+
+- It finds the symbol definition by matching patterns like def symbol or class symbol
+- It walks backwards to include any decorators
+- For multi-line definitions, it captures everything until the next top-level definition
+- It stops before dunder methods to avoid pulling in too much
+
+For example, the extractSymbol function in F# generates this Python:
+*)
+
+(*** include-python: extractSymbol ***)
 
 (**
 ## Header Level Adjustment

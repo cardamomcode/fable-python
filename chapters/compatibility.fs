@@ -3,9 +3,8 @@ module Compatibility
 (**
 # F# Compatibility in Fable.Python
 
-Understanding what works and what doesn't is crucial when targeting Python
-with Fable. This chapter covers supported features, limitations, and
-important differences from .NET.
+This chapter covers supported features, limitations, and important differences
+from .NET when targeting Python with Fable.
 
 ## Common Types and Objects
 
@@ -94,6 +93,11 @@ let mutableList = ResizeArray<int>()
 (*** include-python: greeting, is_enabled, coordinates, numbers, mutable_list ***)
 
 (**
+Each of these F# values compiles to its Python equivalent. Strings become `str`,
+booleans become `bool`, and tuples become Python tuples. The F# `list` uses the
+fable-library implementation for immutable semantics, while `ResizeArray`
+compiles directly to Python's mutable `list`.
+
 ### Functions and Lambdas
 
 First-class functions work as expected:
@@ -106,6 +110,10 @@ let applyTwice f x = f (f x)
 let result = applyTwice (add 1) 5 // 7
 
 (**
+Functions are first-class values in F#. The `applyTwice` function takes another
+function `f` as a parameter and applies it twice. Partial application works
+naturally - `(add 1)` creates a new function that adds 1 to its argument.
+
 ### Pattern Matching
 
 Full pattern matching support:

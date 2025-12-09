@@ -27,6 +27,7 @@ The converter is a simple state machine that processes input line by line:
 - Lines inside `(** ... *)` blocks are emitted as Markdown
 - F# code outside those blocks is wrapped in fenced code blocks
 - `(*** hide ***)` sections are excluded from output
+- `(*** include-python: symbol1, symbol2 ***)` extracts generated Python code
 
 ## Parser State
 
@@ -49,6 +50,23 @@ Each line is classified using an active pattern to determine how to handle it.
 The pattern also extracts content from markdown start lines:
 
 ```fsharp
+/// Converts a camelCase string to snake_case.
+/// Uses the same algorithm as Fable's dashify function.
+/// PascalCase names (starting with uppercase) are preserved as-is.
+let toPythonNaming (name: string) : string =
+    if name.Length > 0 && Char.IsLower(name.[0]) then
+        System.Text.RegularExpressions.Regex.Replace(
+            name,
+            "[a-z]?[A-Z]",
+            fun m ->
+                if m.Value.Length = 1 then
+                    m.Value.ToLowerInvariant()
+                else
+                    m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+        )
+    else
+        name
+
 /// Parses a comma-separated list of symbols from an include-python directive.
 let parseSymbolList (directive: string) : string list =
     // Extract content between "(*** include-python:" and "***)"
@@ -182,8 +200,9 @@ let arrayTakeWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
 /// Returns the definition including any decorators, stopping before dunder methods.
 let extractSymbol (symbol: string) (lines: string array) : string option =
     let symbolPatterns = [
-        $"{symbol} ="; $"{symbol}: "; $"def {symbol}("
-        $"class {symbol}("; $"class {symbol}:"
+        $"{symbol} ="; $"{symbol}: "
+        $"def {symbol}("; $"def {symbol}["  // Generic functions use [T] syntax
+        $"class {symbol}("; $"class {symbol}:"; $"class {symbol}["
     ]
 
     let matchesSymbol (line: string) =
@@ -194,9 +213,10 @@ let extractSymbol (symbol: string) (lines: string array) : string option =
     |> Array.tryFindIndex matchesSymbol
     |> Option.map (fun defIndex ->
         // Walk backwards to include decorators
+        // Find the first non-decorator line above defIndex, then start after it
         let startIndex =
             Seq.init defIndex (fun i -> defIndex - 1 - i)
-            |> Seq.tryFindBack (fun i -> not (isDecorator lines[i]))
+            |> Seq.tryFind (fun i -> not (isDecorator lines[i]))
             |> Option.map ((+) 1)
             |> Option.defaultValue 0
 
@@ -221,10 +241,11 @@ let extractSymbol (symbol: string) (lines: string array) : string option =
     )
 
 /// Extracts multiple symbols and combines them.
+/// Converts F# symbol names to Python naming conventions.
 let extractSymbols (symbols: string list) (pythonContent: string) : string =
     let lines = pythonContent.Split('\n')
     symbols
-    |> List.choose (fun sym -> extractSymbol sym lines)
+    |> List.choose (fun sym -> extractSymbol (toPythonNaming sym) lines)
     |> String.concat "\n\n"
 
 /// Processes a single line, updating the parse context based on state transitions.
@@ -240,7 +261,7 @@ let processLine (ctx: ParseContext) (line: string) : ParseContext =
         | Some pythonContent ->
             let extracted = extractSymbols symbols pythonContent
             if extracted.Length > 0 then
-                let block = $"\nThis generates:\n\n```python\n{extracted}\n```\n\n"
+                let block = $"\n```python\n{extracted}\n```\n\n"
                 { flushed with Output = block :: flushed.Output }
             else
                 flushed // No symbols found, emit nothing
@@ -295,6 +316,121 @@ Read all lines, process them, and return the Markdown output:
 let processLines (lines: string seq) : string =
     let finalCtx = lines |> Seq.fold processLine emptyContext |> flushCodeBuffer // Flush any remaining code
     finalCtx.Output |> List.rev |> String.concat ""
+```
+
+## Including Generated Python Code
+
+One of Fabletext's unique features is the ability to show the generated Python
+alongside the F# source. The include-python directive extracts specific symbols
+from the transpiled output.
+
+When you pass --python-file path to fabletext, it reads the transpiled
+Python and extracts the named symbols (functions, classes, or variables).
+This lets readers see exactly what Python code Fable generates from the F#.
+
+The extraction is smart about Python syntax:
+
+- It finds the symbol definition by matching patterns like def symbol or class symbol
+- It walks backwards to include any decorators
+- For multi-line definitions, it captures everything until the next top-level definition
+- It stops before dunder methods to avoid pulling in too much
+
+For example, the extractSymbol function in F# generates this Python:
+
+```python
+def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
+    """Extracts a single symbol definition from Python source lines.
+    Returns the definition including any decorators, stopping before dunder methods.
+    """
+    symbol_patterns: FSharpList[str] = of_array_1(
+        Array[Any](
+            [
+                concat(symbol, " ="),
+                concat(symbol, ": "),
+                concat("def ", symbol, "("),
+                concat("def ", symbol, "["),
+                concat("class ", symbol, "("),
+                concat("class ", symbol, ":"),
+                concat("class ", symbol, "["),
+            ]
+        )
+    )
+
+    def mapping_2(def_index: int32, symbol: Any = symbol, lines: Any = lines) -> str:
+        def mapping(y: int32, def_index: Any = def_index) -> int32:
+            return int32.ONE + y
+
+        def predicate_1(i_1: int32, def_index: Any = def_index) -> bool:
+            return not is_decorator(lines[i_1])
+
+        def _arrow13(i: int32, def_index: Any = def_index) -> int32:
+            return (def_index - int32.ONE) - i
+
+        start_index: int32 = default_arg(
+            map_1(mapping, try_find(predicate_1, initialize(def_index, _arrow13))),
+            int32.ZERO,
+        )
+        def_line: str = lines[def_index].lstrip()
+        if not (
+            True
+            if starts_with_exact(def_line, "class ")
+            else starts_with_exact(def_line, "def ")
+        ):
+            return lines[def_index]
+
+        else:
+
+            def predicate_3(value_2: str, def_index: Any = def_index) -> bool:
+                return is_null_or_white_space(value_2)
+
+            def mapping_1(tuple: tuple[int32, str], def_index: Any = def_index) -> str:
+                return tuple[int32_1(1)]
+
+            def predicate_2(
+                tupled_arg: tuple[int32, str], def_index: Any = def_index
+            ) -> bool:
+                def _arrow14(__unit: None = None, tupled_arg: Any = tupled_arg) -> bool:
+                    line_1: str = tupled_arg[int32_1(1)]
+                    return (
+                        (
+                            True
+                            if is_top_level_definition(line_1)
+                            else is_dunder_method(line_1)
+                        )
+                        if ((start_index + tupled_arg[int32_1(0)]) > def_index)
+                        else False
+                    )
+
+                return not _arrow14()
+
+            return join(
+                "\n",
+                reverse_1(
+                    array_skip_while(
+                        predicate_3,
+                        reverse_1(
+                            map(
+                                mapping_1,
+                                array_take_while(
+                                    predicate_2,
+                                    indexed(lines[start_index : len(lines)]),
+                                ),
+                                None,
+                            )
+                        ),
+                    )
+                ),
+            )
+
+    def matches_symbol(line: str, symbol: Any = symbol, lines: Any = lines) -> bool:
+        trimmed: str = line.lstrip()
+
+        def predicate(value: str, line: Any = line) -> bool:
+            return starts_with_exact(trimmed, value)
+
+        return exists(predicate, symbol_patterns)
+
+    return map_1(mapping_2, try_find_index(matches_symbol, lines))
 ```
 
 ## Header Level Adjustment

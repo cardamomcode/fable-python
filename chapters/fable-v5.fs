@@ -30,8 +30,7 @@ The Python target has received special attention in v5:
 ## Rust Core with PyO3
 
 One of the biggest changes is that the core of fable-library is now written
-in **Rust** using PyO3. This isn't primarily for performance - it's for
-**correctness**:
+in **Rust** using PyO3. The motivation is **correctness**, not performance:
 *)
 
 (*** hide ***)
@@ -94,5 +93,5 @@ Then compile your F# to Python:
 dotnet fable YourProject.fsproj --lang python -o output/
 ```
 
-The generated Python code will be modern, type-hinted, and ready to run!
+The generated Python code will be modern, type-hinted, and ready to run.
 *)

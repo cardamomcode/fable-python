@@ -37,8 +37,12 @@ Fable-generated Python code requires the `fable-library` runtime:
 pip install "fable-library==5.0.0a17"
 ```
 
-> **Note:** Version pinning is important! The fable-library version must match
-> your Fable compiler version. PyPI uses `5.0.0a17` format instead of `5.0.0-alpha.17`.
+---
+
+**Note:** Version pinning matters. The fable-library version must match
+your Fable compiler version. PyPI uses `5.0.0a17` format instead of `5.0.0-alpha.17`.
+
+---
 
 ## Your First Program
 

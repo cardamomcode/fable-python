@@ -59,6 +59,9 @@ let length = builtins.len [ 1; 2; 3 ]
 let absValue = builtins.abs (-42)
 ```
 
+The `builtins` module provides typed access to Python's built-in functions.
+These calls compile directly to `len([1, 2, 3])` and `abs(-42)` in Python.
+
 ### Working with sys Module
 
 ```fsharp
@@ -75,6 +78,9 @@ let fullPath = os.path.join [| "/home"; "user"; "file.txt" |]
 let fileName = os.path.basename "/path/to/file.txt"
 let dirName = os.path.dirname "/path/to/file.txt"
 ```
+
+The `os.path` functions work with arrays of path segments. These compile to
+Python's `os.path.join`, `os.path.basename`, and `os.path.dirname` calls.
 
 ## Environment Variables
 
@@ -293,12 +299,10 @@ type DecoratedUser() =
 This generates:
 
 ```python
-from dataclasses import dataclass
-
 @dataclass
 class DecoratedUser:
+    Age: int32 = int32.ZERO
     Name: str = ""
-    Age: int = 0
 ```
 
 ## Class Attributes and DataClasses
@@ -318,8 +322,8 @@ This generates class-level type annotations suitable for Pydantic:
 
 ```python
 class PydanticModel:
+    Age: int32 = int32.ZERO
     Name: str = ""
-    Age: int = 0
 ```
 
 ### Py.DataClass Shorthand

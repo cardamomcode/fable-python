@@ -31,9 +31,9 @@ let json: IExports = nativeOnly
 
 This generates: `import json`
 
-The `[<Erase>]` attribute means the interface only exists at compile time -
-no code is generated for it. The `nativeOnly` placeholder tells Fable the
-value will be resolved at runtime.
+The `[<Erase>]` attribute means the interface only exists at compile time
+(erased = no code generated for it). The `nativeOnly` placeholder tells Fable
+the value will be resolved at runtime.
 
 ## Import Attributes
 
@@ -104,7 +104,8 @@ let upper (s: string) : string = nativeOnly
 
 ## Function Overloads
 
-**Prefer overloads over erased unions.** Instead of:
+**Why prefer overloads over erased unions?** Erased unions like `U2<string, bytes>`
+require callers to wrap values explicitly, creating friction. Instead of:
 
 ```fsharp
 // ❌ Avoid this - creates friction for callers

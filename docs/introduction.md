@@ -36,14 +36,14 @@ Fable.Python is a great choice when:
 ## When NOT to Use Fable.Python
 
 - When your F# code depends on .NET libraries without Fable support
-- Performance-critical code (Python is still slow)
+- Performance-critical code (Python has runtime overhead)
 - Team won't learn F#
 
 **Best fit:** You love F#, but need Python's ecosystem.
 
-## A Simple Example
+## A First Example
 
-Let's start with something simple. Here's F# code that will compile to Python:
+Let's start with F# code that compiles to Python:
 
 ```fsharp
 let greet name = $"Hello, {name}!"
@@ -51,14 +51,21 @@ let greet name = $"Hello, {name}!"
 let message = greet "Fable.Python"
 ```
 
-When compiled with Fable, this generates clean, readable Python:
+When compiled with Fable, this generates the following Python:
 
 ```python
-def greet(name):
-    return f"Hello, {name}!"
+def greet[_A](name: Any | None = None) -> str:
+    return ("Hello, " + str(name)) + "!"
 
-message = greet("Fable.Python")
+message: str = greet("Fable.Python")
 ```
+
+The `name: Any | None = None` signature may look odd at first. This happens because
+F# infers the type from usage - since we only call `greet` with a string, the compiler
+doesn't know if it might also be called with unit `()` (no argument). If it were,
+Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an
+explicit type annotation `let greet (name: string) = ...` would generate a cleaner
+`name: str` parameter.
 
 ## The Power of Types
 
@@ -79,9 +86,11 @@ let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 let totalArea = shapes |> List.sumBy area
 ```
 
-This compiles to Python while preserving the semantic meaning. The discriminated
-union becomes a tagged class structure, and pattern matching becomes clean
-conditional logic.
+This compiles to Python while preserving the semantic meaning. The `Shape` type
+becomes a tagged class structure, and the `match` expression becomes clean
+conditional logic. The compiler ensures you handle all cases - if you add a
+new shape variant, the compiler will warn you about unhandled cases in
+the `area` function.
 
 ## What's Next?
 
@@ -91,4 +100,4 @@ In the following chapters, we'll cover:
 - **Bindings** - Working with Python libraries from F#
 - **Compatibility** - Understanding what F# features are supported
 
-Let's dive in!
+Let's begin.
