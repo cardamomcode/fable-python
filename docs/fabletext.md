@@ -167,11 +167,14 @@ let flushCodeBuffer (ctx: ParseContext) : ParseContext =
 let mutable pythonFileContent: string option = None
 
 /// Checks if a line starts a new top-level definition (not indented).
+/// Excludes closing brackets which are continuation of previous definitions.
 let isTopLevelDefinition (line: string) : bool =
+    let trimmed = line.Trim()
     not (String.IsNullOrWhiteSpace line)
     && not (line.StartsWith " ")
     && not (line.StartsWith "\t")
     && not (line.StartsWith "#")
+    && not (trimmed = ")" || trimmed = "]" || trimmed = "}")
 
 /// Checks if a line is a decorator.
 let isDecorator (line: string) : bool =
@@ -221,7 +224,13 @@ let extractSymbol (symbol: string) (lines: string array) : string option =
             |> Option.defaultValue 0
 
         let defLine = lines[defIndex].TrimStart()
-        let isMultiline = defLine.StartsWith "class " || defLine.StartsWith "def "
+        // Multi-line if: class/def, or assignment ending with open paren/bracket
+        let isMultiline =
+            defLine.StartsWith "class "
+            || defLine.StartsWith "def "
+            || defLine.EndsWith "("
+            || defLine.EndsWith "["
+            || defLine.EndsWith "{"
 
         if not isMultiline then
             lines[defIndex]
@@ -373,8 +382,20 @@ def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
         def_line: str = lines[def_index].lstrip()
         if not (
             True
-            if starts_with_exact(def_line, "class ")
-            else starts_with_exact(def_line, "def ")
+            if (
+                True
+                if (
+                    True
+                    if (
+                        True
+                        if starts_with_exact(def_line, "class ")
+                        else starts_with_exact(def_line, "def ")
+                    )
+                    else ends_with_exact(def_line, "(")
+                )
+                else ends_with_exact(def_line, "[")
+            )
+            else ends_with_exact(def_line, "{")
         ):
             return lines[def_index]
 

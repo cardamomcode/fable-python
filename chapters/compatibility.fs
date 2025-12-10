@@ -8,8 +8,9 @@ from .NET when targeting Python with Fable.
 
 ## Common Types and Objects
 
-Some F#/.NET types have counterparts in Python. Fable takes advantage of this
-to compile to native types that are more performant and reduce code size.
+Some F#/.NET types have counterparts in Python. Fable takes advantage of
+this to compile to native types that are more performant and reduce code
+size. Native types also simplify interop with Python code and libraries.
 The most important common types are:
 
 |       F#/.NET Type       |  Python Type  |              Notes              |
@@ -20,7 +21,7 @@ The most important common types are:
 | `Tuple`                  | `tuple`       | Native Python tuple             |
 | `ResizeArray<T>`         | `list`        | Native Python list              |
 | `Dictionary<K,V>`        | `dict`        | Native Python dict              |
-| `seq<T>` / `IEnumerable` | iterator      | Uses `__iter__` protocol        |
+| `seq<T>` / `IEnumerable` | `Iterable`    | Uses `__iter__` protocol        |
 | `Array`                  | `FSharpArray` | Custom wrapper for F# semantics |
 
 ## .NET Base Class Library
@@ -46,7 +47,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased (see caveats)       |
+| `Option<T>`       | erased to `T \| None`      |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |
@@ -235,6 +236,11 @@ let processed =
         squared)
 
 // Becomes a separate function in Python
+(**
+We can see that the mapping becomes a separate function in the generated Python code.
+*)
+
+(*** include-python: mapping, processed ***)
 
 (**
 ### Numeric Types
@@ -272,6 +278,12 @@ let wrapped: int = maxInt + 1 // Wraps around like .NET
 let huge: bigint = 999999999999999999999999999999I
 
 (**
+This generates:
+*)
+
+(*** include-python: small, big, wrapped, huge ***)
+
+(**
 ### Computation Expressions
 
 Async and task computation expressions have some differences from .NET.
@@ -289,7 +301,8 @@ If your project has `[<EntryPoint>]`, you need:
 </PropertyGroup>
 ```
 
-This ensures absolute imports in generated Python.
+This ensures the use of absolute imports in generated Python. Applications
+in Python must use absolute imports to run correctly.
 
 ### Libraries
 
@@ -307,7 +320,7 @@ Libraries use relative imports by default, which is correct for packages.
 Fable.Python provides excellent F# support. The main things to watch for are:
 
 - Option erasure in edge cases
-- Multi-line lambda lifting
+- Multi-line lambda lifting, will not be anonymous
 - Some .NET APIs may be missing
 
 For most F# code, you can write idiomatic functional code and it will

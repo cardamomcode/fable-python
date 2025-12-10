@@ -5,8 +5,9 @@ from .NET when targeting Python with Fable.
 
 ## Common Types and Objects
 
-Some F#/.NET types have counterparts in Python. Fable takes advantage of this
-to compile to native types that are more performant and reduce code size.
+Some F#/.NET types have counterparts in Python. Fable takes advantage of
+this to compile to native types that are more performant and reduce code
+size. Native types also simplify interop with Python code and libraries.
 The most important common types are:
 
 |       F#/.NET Type       |  Python Type  |              Notes              |
@@ -17,7 +18,7 @@ The most important common types are:
 | `Tuple`                  | `tuple`       | Native Python tuple             |
 | `ResizeArray<T>`         | `list`        | Native Python list              |
 | `Dictionary<K,V>`        | `dict`        | Native Python dict              |
-| `seq<T>` / `IEnumerable` | iterator      | Uses `__iter__` protocol        |
+| `seq<T>` / `IEnumerable` | `Iterable`    | Uses `__iter__` protocol        |
 | `Array`                  | `FSharpArray` | Custom wrapper for F# semantics |
 
 ## .NET Base Class Library
@@ -43,7 +44,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased (see caveats)       |
+| `Option<T>`       | erased to `T \| None`      |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |
@@ -96,6 +97,8 @@ is_enabled: bool = True
 coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
 
 numbers: FSharpList[int32] = of_array(
+    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
+)
 
 mutable_list: list[int32] = []
 ```
@@ -248,6 +251,15 @@ let processed =
         squared)
 
 // Becomes a separate function in Python
+```
+
+```python
+def mapping(x_1: int32) -> int32:
+    return x_1 * x_1
+
+processed: FSharpList[int32] = map(
+    mapping, of_array(Array[int32]([int32.ONE, int32.TWO, int32.THREE]))
+)
 ```
 
 ### Numeric Types

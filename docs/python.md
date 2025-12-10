@@ -196,7 +196,7 @@ unwrap the option first.
 | Dictionary       | `{"a": 1}`          | `Map.ofList [("a", 1)]`   |
 | None check       | `if x is None:`     | `match x with None ->`    |
 | String format    | `f"Hello {name}"`   | `$"Hello {name}"`         |
-| Type annotation  | `x: int`            | `x: int` (same!)          |
+| Type annotation  | `x: int`            | `x: int32`.               |
 | Comments         | `# comment`         | `// comment`              |
 | Multiline string | `"""text"""`        | `"""text"""` (same!)      |
 

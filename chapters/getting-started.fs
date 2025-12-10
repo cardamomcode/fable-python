@@ -26,10 +26,10 @@ dotnet new console -lang F#
 
 # Set up local tools and install Fable 5 (alpha)
 dotnet new tool-manifest
-dotnet tool install fable --version 5.0.0-alpha.17
+dotnet tool install fable --version 5.0.0-alpha.20
 
 # Add Fable.Core package
-dotnet add package Fable.Core --version 5.0.0-beta.2
+dotnet add package Fable.Core --version 5.0.0-beta.4
 ```
 
 ## Install Python Dependencies
@@ -37,13 +37,13 @@ dotnet add package Fable.Core --version 5.0.0-beta.2
 Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
-pip install "fable-library==5.0.0a17"
+pip install "fable-library==5.0.0a20"
 ```
 
 ---
 
 **Note:** Version pinning matters. The fable-library version must match
-your Fable compiler version. PyPI uses `5.0.0a17` format instead of `5.0.0-alpha.17`.
+your Fable compiler version. PyPI uses `5.0.0a20` format instead of `5.0.0-alpha.20`.
 
 ---
 
