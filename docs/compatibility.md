@@ -253,6 +253,8 @@ let processed =
 // Becomes a separate function in Python
 ```
 
+We can see that the mapping becomes a separate function in the generated Python code.
+
 ```python
 def mapping(x_1: int32) -> int32:
     return x_1 * x_1
@@ -297,6 +299,18 @@ let wrapped: int = maxInt + 1 // Wraps around like .NET
 let huge: bigint = 999999999999999999999999999999I
 ```
 
+This generates:
+
+```python
+small: int32 = int32(42)
+
+big: int = 12345678901234567890
+
+wrapped: int32 = max_int + int32.ONE
+
+huge: int = 999999999999999999999999999999
+```
+
 ### Computation Expressions
 
 Async and task computation expressions have some differences from .NET.
@@ -314,7 +328,8 @@ If your project has `[<EntryPoint>]`, you need:
 </PropertyGroup>
 ```
 
-This ensures absolute imports in generated Python.
+This ensures the use of absolute imports in generated Python. Applications
+in Python must use absolute imports to run correctly.
 
 ### Libraries
 
@@ -332,7 +347,7 @@ Libraries use relative imports by default, which is correct for packages.
 Fable.Python provides excellent F# support. The main things to watch for are:
 
 - Option erasure in edge cases
-- Multi-line lambda lifting
+- Multi-line lambda lifting, will not be anonymous
 - Some .NET APIs may be missing
 
 For most F# code, you can write idiomatic functional code and it will

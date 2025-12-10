@@ -1,17 +1,17 @@
 # Are You a Python Developer?
 
-If you're coming from Python, welcome. This chapter will help you understand
-the F# code you'll see throughout this guide. F# is more approachable than
-it might appear, and many concepts are familiar.
+If you're coming from Python, welcome. This chapter will help you understand the F# code
+you'll see throughout this guide. F# is more approachable than it might appear, and many
+concepts are familiar.
 
 ## What is F#?
 
-F# is a functional-first language that runs on .NET. But here's the key insight
-for you: **with Fable.Python, .NET is just a build tool**. You write F#, it
-compiles to Python, and you run Python. Your deployment is pure Python.
+F# is a functional-first language that runs on .NET. But here's the key insight for you:
+**with Fable.Python, .NET is just a build tool**. You write F#, it compiles to Python,
+and you run Python. Your deployment is pure Python.
 
-Think of it like TypeScript for JavaScript - you get better tooling and type
-safety during development, but the output is the language you know.
+Think of it like TypeScript for JavaScript - you get better tooling and type safety
+during development, but the output is the language you know.
 
 ## Key Concepts You'll See
 
@@ -95,8 +95,8 @@ let area shape =
     | Rectangle(width, height) -> width * height
 ```
 
-The compiler warns you if you forget to handle a case. No more runtime
-`AttributeError` because you forgot a shape type.
+The compiler warns you if you forget to handle a case. No more runtime `AttributeError`
+because you forgot a shape type.
 
 ### Records
 
@@ -152,12 +152,14 @@ let numbers = [ -1; 2; -3; 4; 5 ]
 
 // F# pipeline - reads left to right, top to bottom
 let result =
-    numbers |> List.filter (fun x -> x > 0) |> List.map (fun x -> x * 2) |> List.sum
+    numbers
+    |> List.filter (fun x -> x > 0)
+    |> List.map (fun x -> x * 2)
+    |> List.sum
 ```
 
 The `|>` operator takes the value on the left and passes it as the last
-argument to the function on the right. It makes data transformations very
-readable.
+argument to the function on the right. It makes data transformations very readable.
 
 ### Option Types
 
@@ -229,5 +231,5 @@ Your deployment, your dependencies, your runtime - all Python.
 
 ## Ready to Start?
 
-Now that you understand the basics, let's set up your first Fable.Python project
-in the next chapter!
+Now that you understand the basics, let's set up your first Fable.Python project in the
+next chapter!

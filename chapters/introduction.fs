@@ -27,8 +27,9 @@ With Fable.Python, you get all these benefits while targeting the Python ecosyst
 
 Fable.Python is a great choice when:
 
-- **Python ecosystem access** - You need AI/ML libraries (PyTorch, TensorFlow, LangChain),
-  data science tools (Pandas, NumPy), or frameworks like Pydantic and FastAPI
+- **Python ecosystem access** - You need AI/ML libraries (PyTorch, TensorFlow,
+  LangChain), data science tools (Pandas, NumPy), or frameworks like Pydantic and
+  FastAPI
 - **F# type safety** - You want pattern matching and exhaustive checking while using
   Python libraries
 - **Shared domain logic** - Write once in F#, run on .NET, JavaScript, Rust, and Python

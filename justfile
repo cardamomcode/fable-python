@@ -21,11 +21,11 @@ restore:
 # Build all chapters to Python
 build:
     dotnet fable fable-python.fsproj --lang python -o output/chapters/
-    dotnet fable tools/fabletext.fsproj --lang python -o output/tools/
+    dotnet fable Fable.Literate/Fable.Literate.fsproj --lang python -o output/Fable.Literate/
 
 # Build the converter only
 build-converter:
-    dotnet fable tools/fabletext.fsproj --lang python -o output/tools/
+    dotnet fable Fable.Literate/Fable.Literate.fsproj --lang python -o output/Fable.Literate/
 
 # Watch mode for development
 watch:
@@ -38,16 +38,16 @@ generate: build format-python
     for name in {{chapters}}; do
         # Convert underscores in chapter name to match Python file naming
         pyname=$(echo "$name" | tr '-' '_')
-        uv run python output/tools/fabletext.py \
+        uv run python output/Fable.Literate/app.py \
             --python-file "output/chapters/chapters/${pyname}.py" \
             "chapters/${name}.fs" > "docs/${name}.md"
         echo "Generated docs/${name}.md"
     done
-    # Also generate fabletext documentation
-    uv run python output/tools/fabletext.py \
-        --python-file "output/tools/fabletext.py" \
-        tools/fabletext.fs > docs/fabletext.md
-    echo "Generated docs/fabletext.md"
+    # Also generate Fable.Literate documentation
+    uv run python output/Fable.Literate/app.py \
+        --python-file "output/Fable.Literate/python.py" \
+        Fable.Literate/App.fs > docs/fable-literate.md
+    echo "Generated docs/fable-literate.md"
     # Fix markdown lint issues
     just lint-markdown
 
@@ -61,23 +61,23 @@ blogpost: build format-python
         pyname=$(echo "$name" | tr '-' '_')
         if $first; then
             # First chapter keeps original header levels (has the title)
-            uv run python output/tools/fabletext.py \
+            uv run python output/Fable.Literate/app.py \
                 --python-file "output/chapters/chapters/${pyname}.py" \
                 "chapters/${name}.fs" > docs/blogpost.md
             first=false
         else
             # Remaining chapters get headers increased by one level
             echo "" >> docs/blogpost.md
-            uv run python output/tools/fabletext.py \
+            uv run python output/Fable.Literate/app.py \
                 --python-file "output/chapters/chapters/${pyname}.py" \
                 --increase-headers "chapters/${name}.fs" >> docs/blogpost.md
         fi
     done
-    # Include fabletext documenting itself (the meta twist!)
+    # Include Fable.Literate documenting itself (the meta twist!)
     echo "" >> docs/blogpost.md
-    uv run python output/tools/fabletext.py \
-        --python-file "output/tools/fabletext.py" \
-        --increase-headers tools/fabletext.fs >> docs/blogpost.md
+    uv run python output/Fable.Literate/app.py \
+        --python-file "output/Fable.Literate/python.py" \
+        --increase-headers Fable.Literate/App.fs >> docs/blogpost.md
     echo "Generated docs/blogpost.md"
     # Fix markdown lint issues
     just lint-markdown
@@ -86,7 +86,7 @@ blogpost: build format-python
 generate-chapter chapter: build format-python
     #!/usr/bin/env bash
     pyname=$(echo "{{chapter}}" | tr '-' '_')
-    uv run python output/tools/fabletext.py \
+    uv run python output/Fable.Literate/app.py \
         --python-file "output/chapters/chapters/${pyname}.py" \
         "chapters/{{chapter}}.fs"
 
@@ -102,7 +102,7 @@ run file:
 
 # Format F# files with fantomas
 format-fsharp:
-    dotnet fantomas chapters/ tools/
+    dotnet fantomas chapters/ Fable.Literate/
 
 # Format Python files with ruff (ignore gitignore for generated files)
 format-python:

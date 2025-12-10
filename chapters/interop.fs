@@ -206,7 +206,8 @@ For more complex Python code with statements:
 
 let factorial (count: int) : int =
     emitPyStatement
-        count """if $0 < 2:
+        count
+        """if $0 < 2:
         return 1
     else:
         return $0 * factorial($0 - 1)
@@ -222,7 +223,7 @@ let factorial (count: int) : int =
 type Direction =
     | North
     | South
-    | [<CompiledName("E")>] East  // Custom string value
+    | [<CompiledName("E")>] East // Custom string value
     | West
 
 // North compiles to "north", East compiles to "E"
@@ -235,13 +236,13 @@ Control the string format with `CaseRules`:
 
 [<StringEnum(CaseRules.SnakeCase)>]
 type UserStatus =
-    | ActiveUser      // -> "active_user"
-    | InactiveUser    // -> "inactive_user"
+    | ActiveUser // -> "active_user"
+    | InactiveUser // -> "inactive_user"
 
 [<StringEnum(CaseRules.KebabCase)>]
 type CssBoxSizing =
-    | ContentBox      // -> "content-box"
-    | BorderBox       // -> "border-box"
+    | ContentBox // -> "content-box"
+    | BorderBox // -> "border-box"
 
 (**
 Available case rules: `None`, `LowerFirst`, `SnakeCase`, `SnakeCaseAllCaps`, `KebabCase`, `LowerAll`.
@@ -255,6 +256,7 @@ Erased unions let you create type-safe wrappers that disappear at runtime:
 type StringOrInt =
     | AsString of string
     | AsInt of int
+
     member this.Describe() =
         match this with
         | AsString s -> $"String: {s}"
@@ -277,6 +279,7 @@ You can create custom decorators that wrap functions at compile time:
 
 type LogAttribute(msg: string) =
     inherit Py.DecoratorAttribute()
+
     override _.Decorate(fn) =
         Py.argsFunc (fun args ->
             printfn $"LOG: {msg}"
@@ -354,6 +357,7 @@ Bind to Python global objects with the `Global` attribute:
 type PyList =
     [<Emit("$0.append($1)")>]
     abstract append: item: obj -> unit
+
     [<Emit("len($0)")>]
     abstract length: int
 

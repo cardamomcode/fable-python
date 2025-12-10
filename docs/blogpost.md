@@ -36,14 +36,14 @@ Fable.Python is a great choice when:
 ## When NOT to Use Fable.Python
 
 - When your F# code depends on .NET libraries without Fable support
-- Performance-critical code (Python is still slow)
+- Performance-critical code (Python has runtime overhead)
 - Team won't learn F#
 
 **Best fit:** You love F#, but need Python's ecosystem.
 
-## A Simple Example
+## A First Example
 
-Let's start with something simple. Here's F# code that will compile to Python:
+Let's start with F# code that compiles to Python:
 
 ```fsharp
 let greet name = $"Hello, {name}!"
@@ -51,14 +51,21 @@ let greet name = $"Hello, {name}!"
 let message = greet "Fable.Python"
 ```
 
-When compiled with Fable, this generates clean, readable Python:
+When compiled with Fable, this generates the following Python:
 
 ```python
-def greet(name):
-    return f"Hello, {name}!"
+def greet[_A](name: Any | None = None) -> str:
+    return ("Hello, " + str(name)) + "!"
 
-message = greet("Fable.Python")
+message: str = greet("Fable.Python")
 ```
+
+The `name: Any | None = None` signature may look odd at first. This happens because
+F# infers the type from usage - since we only call `greet` with a string, the compiler
+doesn't know if it might also be called with unit `()` (no argument). If it were,
+Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an
+explicit type annotation `let greet (name: string) = ...` would generate a cleaner
+`name: str` parameter.
 
 ## The Power of Types
 
@@ -79,9 +86,11 @@ let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 let totalArea = shapes |> List.sumBy area
 ```
 
-This compiles to Python while preserving the semantic meaning. The discriminated
-union becomes a tagged class structure, and pattern matching becomes clean
-conditional logic.
+This compiles to Python while preserving the semantic meaning. The `Shape` type
+becomes a tagged class structure, and the `match` expression becomes clean
+conditional logic. The compiler ensures you handle all cases - if you add a
+new shape variant, the compiler will warn you about unhandled cases in
+the `area` function.
 
 ## What's Next?
 
@@ -91,13 +100,13 @@ In the following chapters, we'll cover:
 - **Bindings** - Working with Python libraries from F#
 - **Compatibility** - Understanding what F# features are supported
 
-Let's dive in!
+Let's begin.
 
 ## Are You a Python Developer?
 
-If you're coming from Python, welcome! This chapter will help you understand
-the F# code you'll see throughout this guide. Don't worry - F# is more
-approachable than it might first appear, and many concepts will feel familiar.
+If you're coming from Python, welcome. This chapter will help you understand
+the F# code you'll see throughout this guide. F# is more approachable than
+it might appear, and many concepts are familiar.
 
 ### What is F#?
 
@@ -190,8 +199,8 @@ let area shape =
     | Rectangle(width, height) -> width * height
 ```
 
-The compiler will warn you if you forget to handle a case. No more runtime
-`AttributeError` because you forgot a shape type!
+The compiler warns you if you forget to handle a case. No more runtime
+`AttributeError` because you forgot a shape type.
 
 #### Records
 
@@ -291,7 +300,7 @@ unwrap the option first.
 | Dictionary       | `{"a": 1}`          | `Map.ofList [("a", 1)]`   |
 | None check       | `if x is None:`     | `match x with None ->`    |
 | String format    | `f"Hello {name}"`   | `$"Hello {name}"`         |
-| Type annotation  | `x: int`            | `x: int` (same!)          |
+| Type annotation  | `x: int`            | `x: int32`.               |
 | Comments         | `# comment`         | `// comment`              |
 | Multiline string | `"""text"""`        | `"""text"""` (same!)      |
 
@@ -352,10 +361,10 @@ dotnet new console -lang F#
 
 # Set up local tools and install Fable 5 (alpha)
 dotnet new tool-manifest
-dotnet tool install fable --version 5.0.0-alpha.17
+dotnet tool install fable --version 5.0.0-alpha.20
 
 # Add Fable.Core package
-dotnet add package Fable.Core --version 5.0.0-beta.2
+dotnet add package Fable.Core --version 5.0.0-beta.4
 ```
 
 ### Install Python Dependencies
@@ -363,11 +372,15 @@ dotnet add package Fable.Core --version 5.0.0-beta.2
 Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
-pip install "fable-library==5.0.0a17"
+pip install "fable-library==5.0.0a20"
 ```
 
-> **Note:** Version pinning is important! The fable-library version must match
-> your Fable compiler version. PyPI uses `5.0.0a17` format instead of `5.0.0-alpha.17`.
+---
+
+**Note:** Version pinning matters. The fable-library version must match
+your Fable compiler version. PyPI uses `5.0.0a20` format instead of `5.0.0-alpha.20`.
+
+---
 
 ### Your First Program
 
@@ -494,6 +507,9 @@ let length = builtins.len [ 1; 2; 3 ]
 let absValue = builtins.abs (-42)
 ```
 
+The `builtins` module provides typed access to Python's built-in functions.
+These calls compile directly to `len([1, 2, 3])` and `abs(-42)` in Python.
+
 #### Working with sys Module
 
 ```fsharp
@@ -510,6 +526,9 @@ let fullPath = os.path.join [| "/home"; "user"; "file.txt" |]
 let fileName = os.path.basename "/path/to/file.txt"
 let dirName = os.path.dirname "/path/to/file.txt"
 ```
+
+The `os.path` functions work with arrays of path segments. These compile to
+Python's `os.path.join`, `os.path.basename`, and `os.path.dirname` calls.
 
 ### Environment Variables
 
@@ -728,12 +747,10 @@ type DecoratedUser() =
 This generates:
 
 ```python
-from dataclasses import dataclass
-
 @dataclass
 class DecoratedUser:
+    Age: int32 = int32.ZERO
     Name: str = ""
-    Age: int = 0
 ```
 
 ### Class Attributes and DataClasses
@@ -753,8 +770,8 @@ This generates class-level type annotations suitable for Pydantic:
 
 ```python
 class PydanticModel:
+    Age: int32 = int32.ZERO
     Name: str = ""
-    Age: int = 0
 ```
 
 #### Py.DataClass Shorthand
@@ -873,9 +890,9 @@ let json: IExports = nativeOnly
 
 This generates: `import json`
 
-The `[<Erase>]` attribute means the interface only exists at compile time -
-no code is generated for it. The `nativeOnly` placeholder tells Fable the
-value will be resolved at runtime.
+The `[<Erase>]` attribute means the interface only exists at compile time
+(erased = no code generated for it). The `nativeOnly` placeholder tells Fable
+the value will be resolved at runtime.
 
 ### Import Attributes
 
@@ -946,7 +963,8 @@ let upper (s: string) : string = nativeOnly
 
 ### Function Overloads
 
-**Prefer overloads over erased unions.** Instead of:
+**Why prefer overloads over erased unions?** Erased unions like `U2<string, bytes>`
+require callers to wrap values explicitly, creating friction. Instead of:
 
 ```fsharp
 // ❌ Avoid this - creates friction for callers
@@ -1116,14 +1134,14 @@ which F# features work with Fable.Python and any limitations to be aware of.
 
 ## F# Compatibility in Fable.Python
 
-Understanding what works and what doesn't is crucial when targeting Python
-with Fable. This chapter covers supported features, limitations, and
-important differences from .NET.
+This chapter covers supported features, limitations, and important differences
+from .NET when targeting Python with Fable.
 
 ### Common Types and Objects
 
-Some F#/.NET types have counterparts in Python. Fable takes advantage of this
-to compile to native types that are more performant and reduce code size.
+Some F#/.NET types have counterparts in Python. Fable takes advantage of
+this to compile to native types that are more performant and reduce code
+size. Native types also simplify interop with Python code and libraries.
 The most important common types are:
 
 |       F#/.NET Type       |  Python Type  |              Notes              |
@@ -1134,7 +1152,7 @@ The most important common types are:
 | `Tuple`                  | `tuple`       | Native Python tuple             |
 | `ResizeArray<T>`         | `list`        | Native Python list              |
 | `Dictionary<K,V>`        | `dict`        | Native Python dict              |
-| `seq<T>` / `IEnumerable` | iterator      | Uses `__iter__` protocol        |
+| `seq<T>` / `IEnumerable` | `Iterable`    | Uses `__iter__` protocol        |
 | `Array`                  | `FSharpArray` | Custom wrapper for F# semantics |
 
 ### .NET Base Class Library
@@ -1160,7 +1178,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased (see caveats)       |
+| `Option<T>`       | erased to `T \| None`      |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |
@@ -1205,8 +1223,6 @@ let numbers = [ 1; 2; 3; 4; 5 ]
 let mutableList = ResizeArray<int>()
 ```
 
-This generates:
-
 ```python
 greeting: str = "Hello, Python!"
 
@@ -1215,9 +1231,16 @@ is_enabled: bool = True
 coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
 
 numbers: FSharpList[int32] = of_array(
+    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
+)
 
 mutable_list: list[int32] = []
 ```
+
+Each of these F# values compiles to its Python equivalent. Strings become `str`,
+booleans become `bool`, and tuples become Python tuples. The F# `list` uses the
+fable-library implementation for immutable semantics, while `ResizeArray`
+compiles directly to Python's mutable `list`.
 
 #### Functions and Lambdas
 
@@ -1230,6 +1253,10 @@ let multiply = fun x y -> x * y
 let applyTwice f x = f (f x)
 let result = applyTwice (add 1) 5 // 7
 ```
+
+Functions are first-class values in F#. The `applyTwice` function takes another
+function `f` as a parameter and applies it twice. Partial application works
+naturally - `(add 1)` creates a new function that adds 1 to its argument.
 
 #### Pattern Matching
 
@@ -1270,120 +1297,7 @@ let person = {
 }
 ```
 
-This generates:
-
 ```python
-from abc import abstractmethod
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, Protocol
-from fable_library.array_ import map as map_1
-from fable_library.array_ import Array, Int32Array
-from fable_library.list import of_array, FSharpList, sum, map, filter
-from fable_library.map import of_list as of_list_1
-from fable_library.range import range_big_int
-from fable_library.reflection import (
-    TypeInfo,
-    union_type,
-    string_type,
-    int32_type,
-    option_type,
-    record_type,
-    float64_type,
-    class_type,
-)
-from fable_library.seq import to_list
-from fable_library.set import of_list
-from fable_library.types import float64, int32, Union, Record
-from fable_library.util import int32 as int32_1, compare_primitives
-
-greeting: str = "Hello, Python!"
-
-is_enabled: bool = True
-
-coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
-
-numbers: FSharpList[int32] = of_array(
-    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
-)
-
-mutable_list: list[int32] = []
-
-
-def add(x: int32, y: int32) -> int32:
-    return x + y
-
-
-def multiply(x: int32, y: int32) -> int32:
-    return x * y
-
-
-def apply_twice[_A](f: Callable[[_A], _A], x: _A) -> _A:
-    return f(f(x))
-
-
-def _arrow27(y: int32) -> int32:
-    return add(int32.ONE, y)
-
-
-result: int32 = apply_twice(_arrow27, int32.FIVE)
-
-
-def _expr28(gen0: TypeInfo, gen1: TypeInfo) -> TypeInfo:
-    return union_type(
-        "Compatibility.Result`2",
-        [gen0, gen1],
-        Result_2,
-        lambda: [[("Item", gen0)], [("Item", gen1)]],
-    )
-
-
-class Result_2[E, T](Union):
-    def __init__(self, tag: int32, *fields: Any) -> None:
-        super().__init__()
-        self.tag: int32 = tag
-        self.fields: Array[Any] = Array[Any](fields)
-
-    @staticmethod
-    def cases() -> list[str]:
-        return ["Ok", "Error"]
-
-
-Result_2_reflection = _expr28
-
-
-def handle_result[_A, _B](result_1: Result_2[Any, Any]) -> str:
-    if result_1.tag == int32_1(1):
-        return ("Failed: " + str(result_1.fields[int32_1(0)])) + ""
-
-    else:
-        return ("Success: " + str(result_1.fields[int32_1(0)])) + ""
-
-
-def active_pattern_example(input: int32) -> str:
-    if input > int32.ZERO:
-        return "positive"
-
-    elif input < int32.ZERO:
-        return "negative"
-
-    else:
-        return "zero"
-
-
-def _expr29() -> TypeInfo:
-    return record_type(
-        "Compatibility.Person",
-        [],
-        Person,
-        lambda: [
-            ("name", string_type),
-            ("age", int32_type),
-            ("email", option_type(string_type)),
-        ],
-    )
-
-
 @dataclass(eq=False, repr=False, slots=True)
 class Person(Record):
     name: str
@@ -1473,6 +1387,17 @@ let processed =
 // Becomes a separate function in Python
 ```
 
+We can see that the mapping becomes a separate function in the generated Python code.
+
+```python
+def mapping(x_1: int32) -> int32:
+    return x_1 * x_1
+
+processed: FSharpList[int32] = map(
+    mapping, of_array(Array[int32]([int32.ONE, int32.TWO, int32.THREE]))
+)
+```
+
 #### Numeric Types
 
 Numeric types in Fable.Python are implemented using custom PyO3 wrapper types
@@ -1508,6 +1433,18 @@ let wrapped: int = maxInt + 1 // Wraps around like .NET
 let huge: bigint = 999999999999999999999999999999I
 ```
 
+This generates:
+
+```python
+small: int32 = int32(42)
+
+big: int = 12345678901234567890
+
+wrapped: int32 = max_int + int32.ONE
+
+huge: int = 999999999999999999999999999999
+```
+
 #### Computation Expressions
 
 Async and task computation expressions have some differences from .NET.
@@ -1525,7 +1462,8 @@ If your project has `[<EntryPoint>]`, you need:
 </PropertyGroup>
 ```
 
-This ensures absolute imports in generated Python.
+This ensures the use of absolute imports in generated Python. Applications
+in Python must use absolute imports to run correctly.
 
 #### Libraries
 
@@ -1543,7 +1481,7 @@ Libraries use relative imports by default, which is correct for packages.
 Fable.Python provides excellent F# support. The main things to watch for are:
 
 - Option erasure in edge cases
-- Multi-line lambda lifting
+- Multi-line lambda lifting, will not be anonymous
 - Some .NET APIs may be missing
 
 For most F# code, you can write idiomatic functional code and it will
@@ -1580,8 +1518,7 @@ The Python target has received special attention in v5:
 ### Rust Core with PyO3
 
 One of the biggest changes is that the core of fable-library is now written
-in **Rust** using PyO3. This isn't primarily for performance - it's for
-**correctness**:
+in **Rust** using PyO3. The motivation is **correctness**, not performance:
 
 #### Why Rust?
 
@@ -1638,7 +1575,7 @@ Then compile your F# to Python:
 dotnet fable YourProject.fsproj --lang python -o output/
 ```
 
-The generated Python code will be modern, type-hinted, and ready to run!
+The generated Python code will be modern, type-hinted, and ready to run.
 
 ## Pydantic Interop
 
@@ -1805,7 +1742,7 @@ let speed = distance / time // Automatically inferred as float<m/s>
 ```
 
 The compiler tracks units through all operations. Division of meters by
-seconds gives meters-per-second. This is all checked at compile time!
+seconds gives meters-per-second. This is all checked at compile time.
 
 ### Preventing Errors
 
@@ -1815,7 +1752,7 @@ Try to add incompatible units and the compiler stops you:
 let distance = 100.0<m>
 let mass = 50.0<kg>
 
-// This won't compile!
+// This won't compile:
 // let nonsense = distance + mass
 // Error: The unit of measure 'm' does not match 'kg'
 ```
@@ -1899,13 +1836,13 @@ unit checking. With Fable.Python, you can:
 This is especially valuable for physics simulations, financial calculations,
 engineering applications, and any domain where mixing up units could be costly.
 
-## Fabletext: The Strange Loop
+## Fable.Literate: The Strange Loop
 
 You've made it to the end - and here's where things get delightfully meta.
 
 **The blog post you're reading was generated by the code in this chapter.**
 
-This is Fabletext, a literate programming converter inspired by
+This is Fable.Literate, a literate programming converter inspired by
 [jupytext](https://github.com/mwouts/jupytext) and
 [FSharp.Formatting](https://fsprojects.github.io/FSharp.Formatting/).
 It's written in F#, compiled to Python via Fable, and it processes the
@@ -1915,7 +1852,7 @@ The chain goes like this:
 
 1. Each chapter is an F# file with embedded Markdown comments
 2. Fable compiles the F# to Python
-3. Fabletext (this code, running as Python) extracts the documentation
+3. Fable.Literate (this code, running as Python) extracts the documentation
 4. The output is the Markdown you're reading right now
 
 It's a strange loop - the snake eating its tail. And it proves that
@@ -1923,314 +1860,95 @@ Fable.Python isn't just a toy: you're looking at a real project that works.
 
 ### How It Works
 
-The converter is a simple state machine that processes input line by line:
+The converter follows a compiler-like architecture with three phases:
 
-- Lines inside `(** ... *)` blocks are emitted as Markdown
+1. **Parse**: Convert source lines into a Block AST
+2. **Transform**: Filter hidden blocks, resolve Python includes
+3. **Print**: Render the AST as Markdown
+
+The input syntax:
+
+- Lines inside `(** ... *)` blocks become Markdown
 - F# code outside those blocks is wrapped in fenced code blocks
 - `(*** hide ***)` sections are excluded from output
+- `(*** include-python: symbol1, symbol2 ***)` extracts generated Python code
 
-### Parser State
+### AST Types
 
-We track three possible states as we scan through the file:
+The document is represented as a list of blocks. Each block represents
+a distinct section of the literate source file:
 
 ```fsharp
-/// Represents the current state of the parser state machine.
-type ParserState =
-    /// Inside a markdown block (** ... *)
-    | InMarkdown
-    /// Regular F# code outside markdown blocks
-    | InCode
-    /// Hidden section after (*** hide ***), content is skipped
-    | Hidden
+/// A single block in the document AST.
+type Block =
+    /// Raw markdown content from (** ... *) blocks
+    | Markdown of content: string
+    /// F# code that should be wrapped in fenced blocks
+    | FSharpCode of lines: string list
+    /// Hidden content - filtered out by Transform.filterHidden
+    | Hidden of lines: string list
+    /// Unresolved directive to include Python symbols (from parsing)
+    /// Resolved to PythonCode by Transform.resolvePythonIncludes
+    | IncludePython of symbols: string list
+    /// Resolved Python code (after Transform.resolvePythonIncludes)
+    | PythonCode of content: string
+
+/// A parsed document is a list of blocks.
+type Document = Block list
 ```
 
-### Line Classification
+### Utils Module
 
-Each line is classified using an active pattern to determine how to handle it.
-The pattern also extracts content from markdown start lines:
+Utility functions for naming conversion and line classification:
 
-```fsharp
-/// Parses a comma-separated list of symbols from an include-python directive.
-let parseSymbolList (directive: string) : string list =
-    // Extract content between "(*** include-python:" and "***)"
-    let start = "(*** include-python:".Length
-    let endPos = directive.LastIndexOf("***)")
-    if endPos > start then
-        directive.Substring(start, endPos - start).Trim()
-        |> fun s -> s.Split(',')
-        |> Array.map (fun s -> s.Trim())
-        |> Array.filter (fun s -> s.Length > 0)
-        |> Array.toList
-    else
-        []
+### Parser Module
 
-/// Active pattern for classifying source lines.
-/// - `HideCmd`: The (*** hide ***) directive
-/// - `IncludePythonCmd symbols`: The (*** include-python: sym1, sym2 ***) directive
-/// - `MarkdownSingle content`: Single-line markdown (** content *)
-/// - `MarkdownOpen content`: Start of markdown block, possibly with content
-/// - `MarkdownClose`: End of markdown block *)
-/// - `Content`: Any other line
-let (|HideCmd|IncludePythonCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
-    let trimmed = line.Trim()
+The parser converts source lines into a Block AST using a fold:
 
-    match trimmed with
-    | "(*** hide ***)" -> HideCmd
-    | s when s.StartsWith("(*** include-python:") && s.EndsWith("***)") ->
-        IncludePythonCmd(parseSymbolList s)
-    | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
-        MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
-    | s when s.StartsWith("(**") ->
-        let content = if s.Length > 3 then s.Substring(3).Trim() else ""
-        MarkdownOpen content
-    | "*)" -> MarkdownClose
-    | _ -> Content
-```
+### Transform Module
 
-### State Transitions
+Pure transformations on the document AST:
 
-The heart of the parser - handling transitions between states:
+### MarkdownPrinter Module
 
-```fsharp
-/// The parsing context that tracks state, buffered code, and output.
-type ParseContext = {
-    /// Current parser state
-    State: ParserState
-    /// Accumulated code lines waiting to be flushed
-    CodeBuffer: string list
-    /// Accumulated output chunks (in reverse order)
-    Output: string list
-}
+Renders the document AST to markdown:
 
-/// Initial empty parsing context.
-let emptyContext = {
-    State = InCode
-    CodeBuffer = []
-    Output = []
-}
+### Pipeline Module
 
-/// Active pattern that matches strings starting with any of the given prefixes.
-let (|StartsWithAny|_|) (prefixes: string list) (s: string) =
-    let trimmed = s.Trim()
+Composes the phases into a complete pipeline:
 
-    if prefixes |> List.exists trimmed.StartsWith then
-        Some()
-    else
-        None
+### Including Generated Python Code
 
-/// Boilerplate prefixes that should be excluded from code blocks.
-let boilerplatePrefixes = [ "module "; "namespace " ]
+One of Fable.Literate's unique features is the ability to show the generated Python
+alongside the F# source. The include-python directive extracts specific symbols
+from the transpiled output.
 
-/// Flushes the code buffer to output as a fenced code block.
-/// Skips empty or boilerplate-only code blocks.
-let flushCodeBuffer (ctx: ParseContext) : ParseContext =
-    if ctx.CodeBuffer.IsEmpty then
-        ctx
-    else
-        let code =
-            ctx.CodeBuffer
-            |> List.rev
-            |> String.concat "\n"
-            |> fun s -> s.Trim() // Remove leading/trailing empty lines
-        // Skip empty, whitespace-only, or boilerplate code blocks
-        match code with
-        | s when String.IsNullOrWhiteSpace s -> { ctx with CodeBuffer = [] }
-        | StartsWithAny boilerplatePrefixes -> { ctx with CodeBuffer = [] }
-        | _ ->
-            // Add blank line before and after code block for markdown lint compliance
-            let block = $"\n```fsharp\n{code}\n```\n\n"
+When you pass `--python-file path` to Fable.Literate, it reads the transpiled
+Python and extracts the named symbols (functions, classes, or variables).
+This lets readers see exactly what Python code Fable generates from the F#.
 
-            {
-                ctx with
-                    CodeBuffer = []
-                    Output = block :: ctx.Output
-            }
+The extraction is smart about Python syntax:
 
-/// Mutable storage for Python file content (set via CLI argument).
-let mutable pythonFileContent: string option = None
+- It finds the symbol definition by matching patterns like def symbol or class symbol
+- It walks backwards to include any decorators
+- For multi-line definitions, it captures everything until the next top-level definition
+- It stops before dunder methods to avoid pulling in too much
 
-/// Checks if a line starts a new top-level definition (not indented).
-let isTopLevelDefinition (line: string) : bool =
-    not (String.IsNullOrWhiteSpace line)
-    && not (line.StartsWith " ")
-    && not (line.StartsWith "\t")
-    && not (line.StartsWith "#")
+For example, the extractSymbol function in F# generates this Python:
 
-/// Checks if a line is a decorator.
-let isDecorator (line: string) : bool =
-    line.TrimStart().StartsWith "@"
+```python
+def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
+    """Extracts a single symbol definition from Python source lines."""
 
-/// Checks if a line is a dunder method definition.
-let isDunderMethod (line: string) : bool =
-    let trimmed = line.TrimStart()
-    trimmed.StartsWith "def __"
+    def mapping(def_index: int32, symbol: Any = symbol, lines: Any = lines) -> str:
+        start_index: int32 = find_decorator_start(lines, def_index)
+        if is_multiline_definition(lines[def_index]):
+            return extract_multiline_body(start_index, def_index, lines)
 
-/// Skips elements from the start of an array while the predicate is true.
-/// Workaround until Fable.Python supports Array.skipWhile.
-let arraySkipWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
-    match arr |> Array.tryFindIndex (predicate >> not) with
-    | Some idx -> arr[idx..]
-    | None -> [||]
+        else:
+            return lines[def_index]
 
-/// Takes elements from the start of an array while the predicate is true.
-/// Workaround until Fable.Python supports Array.takeWhile.
-let arrayTakeWhile (predicate: 'a -> bool) (arr: 'a array) : 'a array =
-    match arr |> Array.tryFindIndex (predicate >> not) with
-    | Some idx -> arr[..idx - 1]
-    | None -> arr
-
-/// Extracts a single symbol definition from Python source lines.
-/// Returns the definition including any decorators, stopping before dunder methods.
-let extractSymbol (symbol: string) (lines: string array) : string option =
-    let symbolPatterns = [
-        $"{symbol} ="; $"{symbol}: "; $"def {symbol}("
-        $"class {symbol}("; $"class {symbol}:"
-    ]
-
-    let matchesSymbol (line: string) =
-        let trimmed = line.TrimStart()
-        symbolPatterns |> List.exists trimmed.StartsWith
-
-    lines
-    |> Array.tryFindIndex matchesSymbol
-    |> Option.map (fun defIndex ->
-        // Walk backwards to include decorators
-        let startIndex =
-            Seq.init defIndex (fun i -> defIndex - 1 - i)
-            |> Seq.tryFindBack (fun i -> not (isDecorator lines[i]))
-            |> Option.map ((+) 1)
-            |> Option.defaultValue 0
-
-        let defLine = lines[defIndex].TrimStart()
-        let isMultiline = defLine.StartsWith "class " || defLine.StartsWith "def "
-
-        if not isMultiline then
-            lines[defIndex]
-        else
-            // Take lines until we hit a new top-level def or dunder method
-            let shouldStop idx (line: string) =
-                idx > defIndex && (isTopLevelDefinition line || isDunderMethod line)
-
-            lines[startIndex..]
-            |> Array.indexed
-            |> arrayTakeWhile (fun (i, line) -> not (shouldStop (startIndex + i) line))
-            |> Array.map snd
-            |> Array.rev
-            |> arraySkipWhile String.IsNullOrWhiteSpace
-            |> Array.rev
-            |> String.concat "\n"
-    )
-
-/// Extracts multiple symbols and combines them.
-let extractSymbols (symbols: string list) (pythonContent: string) : string =
-    let lines = pythonContent.Split('\n')
-    symbols
-    |> List.choose (fun sym -> extractSymbol sym lines)
-    |> String.concat "\n\n"
-
-/// Processes a single line, updating the parse context based on state transitions.
-let processLine (ctx: ParseContext) (line: string) : ParseContext =
-    match ctx.State, line with
-    // Entering hidden mode
-    | _, HideCmd -> { flushCodeBuffer ctx with State = Hidden }
-
-    // Include Python symbols from transpiled output
-    | (InCode | Hidden), IncludePythonCmd symbols ->
-        let flushed = flushCodeBuffer ctx
-        match pythonFileContent with
-        | Some pythonContent ->
-            let extracted = extractSymbols symbols pythonContent
-            if extracted.Length > 0 then
-                let block = $"\nThis generates:\n\n```python\n{extracted}\n```\n\n"
-                { flushed with Output = block :: flushed.Output }
-            else
-                flushed // No symbols found, emit nothing
-        | None ->
-            // No Python file provided, emit a placeholder comment
-            let symbolList = String.concat ", " symbols
-            let placeholder = $"\n<!-- include-python: {symbolList} (no --python-file provided) -->\n"
-            { flushed with Output = placeholder :: flushed.Output }
-
-    // Single-line markdown: (** content *)
-    | (InCode | Hidden), MarkdownSingle content ->
-        let flushed = flushCodeBuffer ctx
-
-        { flushed with Output = (content + "\n") :: flushed.Output }
-
-    // Starting markdown block with or without content
-    | (InCode | Hidden), MarkdownOpen content ->
-        let flushed = flushCodeBuffer ctx
-
-        if content.Length > 0 then
-            {
-                flushed with
-                    State = InMarkdown
-                    Output = (content + "\n") :: flushed.Output
-            }
-        else
-            { flushed with State = InMarkdown }
-
-    // Ending markdown block
-    | InMarkdown, MarkdownClose -> { ctx with State = InCode }
-
-    // Content inside markdown
-    | InMarkdown, Content -> { ctx with Output = (line + "\n") :: ctx.Output }
-
-    // Code line (not hidden)
-    | InCode, Content -> { ctx with CodeBuffer = line :: ctx.CodeBuffer }
-
-    // Hidden content - skip
-    | Hidden, (Content | MarkdownClose) -> ctx
-
-    // Ignore markdown markers in wrong state
-    | InMarkdown, (MarkdownOpen _ | MarkdownSingle _ | IncludePythonCmd _) -> ctx
-    | InCode, MarkdownClose -> ctx
-```
-
-### Processing a File
-
-Read all lines, process them, and return the Markdown output:
-
-```fsharp
-/// Processes all lines from a literate F# file and returns the Markdown output.
-let processLines (lines: string seq) : string =
-    let finalCtx = lines |> Seq.fold processLine emptyContext |> flushCodeBuffer // Flush any remaining code
-    finalCtx.Output |> List.rev |> String.concat ""
-```
-
-### Header Level Adjustment
-
-For concatenating multiple chapters into a single document, we need to
-increase header levels (# becomes ##, ## becomes ###, etc.):
-
-```fsharp
-/// Increases all markdown header levels by one (# becomes ##, etc.).
-/// Preserves headers inside fenced code blocks.
-let adjustHeaderLevels (markdown: string) : string =
-    let lines = markdown.Split('\n')
-
-    let folder (inCodeBlock, acc) (line: string) =
-        match line with
-        | s when s.StartsWith("```") -> not inCodeBlock, line :: acc
-        | _ when inCodeBlock -> inCodeBlock, line :: acc
-        | s when s.StartsWith("#") -> inCodeBlock, ("#" + line) :: acc
-        | _ -> inCodeBlock, line :: acc
-
-    lines |> Array.fold folder (false, []) |> snd |> List.rev |> String.concat "\n"
-```
-
-### Python File I/O
-
-For Fable.Python, we use Python's file operations:
-
-```fsharp
-/// Reads the entire contents of a file as a string.
-[<Emit("open($0, 'r').read()")>]
-let readFile (path: string) : string = nativeOnly
-
-/// Prints a string to stdout without a trailing newline.
-[<Emit("print($0, end='')")>]
-let printRaw (s: string) : unit = nativeOnly
+    return map(mapping, find_definition_index(symbol, lines))
 ```
 
 ### Main Entry Point
@@ -2245,6 +1963,16 @@ let getFlagValue (flag: string) (args: string[]) : string option =
     |> Option.bind (fun i ->
         if i + 1 < args.Length then Some args.[i + 1] else None)
 
+/// Extracts positional arguments (file paths) from command line args.
+/// Filters out flags (--foo) and their values (--python-file path.py).
+let getPositionalArgs (args: string[]) : string[] =
+    let isFlag (arg: string) = arg.StartsWith "--"
+    let isValueOfFlag i = i > 0 && args.[i - 1] = "--python-file"
+    args
+    |> Array.indexed
+    |> Array.filter (fun (i, arg) -> not (isFlag arg) && not (isValueOfFlag i))
+    |> Array.map snd
+
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 /// Use --python-file <path> to enable include-python directives.
@@ -2252,31 +1980,27 @@ let getFlagValue (flag: string) (args: string[]) : string option =
 let main (args: string[]) =
     let hasFlag flag = args |> Array.contains flag
     let pythonFilePath = getFlagValue "--python-file" args
-    // Filter out flags and their values
-    let files =
-        args
-        |> Array.indexed
-        |> Array.filter (fun (i, a) ->
-            not (a.StartsWith "--")
-            && not (i > 0 && args.[i - 1] = "--python-file"))
-        |> Array.map snd
+    let files = getPositionalArgs args
 
     if files.Length < 1 then
-        printfn "Usage: python fabletext.py [--increase-headers] [--python-file <path.py>] <input.fs>"
+        printfn "Usage: python app.py [--increase-headers] [--python-file <path.py>] <input.fs>"
         1
     else
+        // Thanks to the contributor! (Fable-style)
+        eprintln $"Fable.Literate: Thanks to the contributor! {randomContributor ()}"
+
         // Load Python file content if provided
-        pythonFileContent <-
-            pythonFilePath
-            |> Option.map readFile
+        let pythonContent = pythonFilePath |> Option.map readFile
 
         let content = readFile files.[0]
         let lines = content.Split('\n')
-        let markdown = processLines lines
+
+        // Pipeline: parse -> transform -> print
+        let markdown = lines |> Pipeline.standard pythonContent
 
         let output =
             if hasFlag "--increase-headers" then
-                adjustHeaderLevels markdown
+                MarkdownPrinter.adjustHeaderLevels markdown
             else
                 markdown
 
@@ -2288,10 +2012,10 @@ let main (args: string[]) =
 
 ```bash
 # Transpile to Python
-dotnet fable tools/ --lang python -o output/tools/
+dotnet fable Fable.Literate/ --lang python -o output/Fable.Literate/
 
 # Convert a literate file
-python output/tools/fabletext.py chapters/introduction.fs > docs/introduction.md
+python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction.md
 ```
 
 That's it! A complete literate programming converter in under 200 lines of F#.
