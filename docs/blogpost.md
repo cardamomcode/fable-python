@@ -20,12 +20,17 @@ F# is a functional-first language with powerful features like:
 
 With Fable.Python, you get all these benefits while targeting the Python ecosystem.
 
+Python is the [most popular programming language](https://www.tiobe.com/tiobe-index/)
+in the world. And no matter what you think of Python, it will always be the second
+best language for everything. That ubiquity is exactly why Fable.Python exists.
+
 ## When to Use Fable.Python
 
 Fable.Python is a great choice when:
 
-- **Python ecosystem access** - You need AI/ML libraries (PyTorch, TensorFlow, LangChain),
-  data science tools (Pandas, NumPy), or frameworks like Pydantic and FastAPI
+- **Python ecosystem access** - You need AI/ML libraries (PyTorch, TensorFlow,
+  LangChain), data science tools (Pandas, NumPy), or frameworks like Pydantic and
+  FastAPI
 - **F# type safety** - You want pattern matching and exhaustive checking while using
   Python libraries
 - **Shared domain logic** - Write once in F#, run on .NET, JavaScript, Rust, and Python
@@ -345,7 +350,8 @@ running as Python.
 
 You'll need:
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later)
+- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later. We recommend
+  installing the latest LTS version, currently .NET 10
 - [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
 
 ### Project Setup
@@ -651,7 +657,8 @@ For more complex Python code with statements:
 ```fsharp
 let factorial (count: int) : int =
     emitPyStatement
-        count """if $0 < 2:
+        count
+        """if $0 < 2:
         return 1
     else:
         return $0 * factorial($0 - 1)
@@ -667,7 +674,7 @@ let factorial (count: int) : int =
 type Direction =
     | North
     | South
-    | [<CompiledName("E")>] East  // Custom string value
+    | [<CompiledName("E")>] East // Custom string value
     | West
 
 // North compiles to "north", East compiles to "E"
@@ -680,13 +687,13 @@ Control the string format with `CaseRules`:
 ```fsharp
 [<StringEnum(CaseRules.SnakeCase)>]
 type UserStatus =
-    | ActiveUser      // -> "active_user"
-    | InactiveUser    // -> "inactive_user"
+    | ActiveUser // -> "active_user"
+    | InactiveUser // -> "inactive_user"
 
 [<StringEnum(CaseRules.KebabCase)>]
 type CssBoxSizing =
-    | ContentBox      // -> "content-box"
-    | BorderBox       // -> "border-box"
+    | ContentBox // -> "content-box"
+    | BorderBox // -> "border-box"
 ```
 
 Available case rules: `None`, `LowerFirst`, `SnakeCase`, `SnakeCaseAllCaps`, `KebabCase`, `LowerAll`.
@@ -700,6 +707,7 @@ Erased unions let you create type-safe wrappers that disappear at runtime:
 type StringOrInt =
     | AsString of string
     | AsInt of int
+
     member this.Describe() =
         match this with
         | AsString s -> $"String: {s}"
@@ -722,6 +730,7 @@ You can create custom decorators that wrap functions at compile time:
 ```fsharp
 type LogAttribute(msg: string) =
     inherit Py.DecoratorAttribute()
+
     override _.Decorate(fn) =
         Py.argsFunc (fun args ->
             printfn $"LOG: {msg}"
@@ -808,6 +817,7 @@ Bind to Python global objects with the `Global` attribute:
 type PyList =
     [<Emit("$0.append($1)")>]
     abstract append: item: obj -> unit
+
     [<Emit("len($0)")>]
     abstract length: int
 ```
@@ -1359,16 +1369,23 @@ let mapOps = Map.ofList [ ("a", 1); ("b", 2) ]
 
 #### Options Are Erased
 
-Options are optimized away at runtime:
+Options are erased at runtime, which is actually a feature rather than a limitation.
+This makes interop with Python libraries seamless - you can pass F# option values
+directly to Python functions expecting `T | None`:
 
 ```fsharp
 let someValue = Some 42 // Compiles to just: 42
 let noneValue = None // Compiles to: None
 ```
 
-Note that Fable.Python uses a `SomeWrapper` class to handle nested options correctly.
-`Some None` compiles to `SomeWrapper(None)`, which is distinct from plain `None`.
-This means `Some (Some x)`, `Some None`, and `None` are all properly distinguishable.
+This erasure means Python code receives native values without any wrapper overhead.
+When calling a Python library that returns `Optional[T]`, you get values that work
+directly with F# pattern matching.
+
+For the rare edge case of nested options (`Option<Option<T>>`), Fable.Python uses
+a `SomeWrapper` to distinguish `Some None` from `None`. However, nested options
+are uncommon in practice - the F# compiler warns about them in type annotations,
+and well-designed library bindings avoid exposing them at API boundaries.
 
 #### Multi-line Lambdas
 
@@ -1487,6 +1504,424 @@ Fable.Python provides excellent F# support. The main things to watch for are:
 For most F# code, you can write idiomatic functional code and it will
 compile to clean, working Python.
 
+## Async Programming
+
+Asynchronous programming is essential for modern applications - from web APIs to data
+processing pipelines. F# offers two models for async code: `async` workflows and `task`
+expressions. Understanding when to use each is key to effective Fable.Python development.
+
+### Comparing Python and F`#` Async Models
+
+Python's async model is built on `asyncio`. Python coroutines are **cold** - calling an
+`async def` function returns a coroutine object that doesn't execute until awaited:
+
+```python
+import asyncio
+
+async def fetch_data():
+    print("Starting")  # Not printed when function is called!
+    await asyncio.sleep(1)
+    return "data"
+
+coro = fetch_data()    # Returns coroutine, nothing executes yet
+result = await coro    # NOW "Starting" prints and code runs
+
+# Or more commonly:
+asyncio.run(fetch_data())
+```
+
+F# provides two computation expressions that compile to Python's async model:
+
+- **`async { }`** - F#'s original async workflows (cold, composable, multi-target)
+- **`task { }`** - .NET-style tasks (hot in .NET, compiles to native `async def` in Python)
+
+### F`#` Async Workflows
+
+The `async` computation expression has been part of F# since the beginning. It creates
+*cold* async operations - they don't start until explicitly run.
+
+```fsharp
+open System
+
+let fetchDataAsync () =
+    async {
+        do! Async.Sleep 1000
+        return "data from async"
+    }
+```
+
+Key characteristics of `async`:
+
+- **Cold execution** - Nothing happens until you start it
+- **Composable** - Combine with `Async.Parallel`, `Async.Sequential`, etc.
+- **Multi-target** - The same code works on .NET, JavaScript, AND Python
+- **Cancellation** - Built-in support via `CancellationToken`
+
+#### Running Async Workflows
+
+There are several ways to execute an async workflow:
+
+```fsharp
+let runAsyncExample () =
+    // Start immediately (non-blocking) - Ignore discards the result
+    fetchDataAsync () |> Async.Ignore |> Async.StartImmediate
+
+    // Run synchronously (blocking)
+    let result = fetchDataAsync () |> Async.RunSynchronously
+
+    // Start with explicit continuations
+    Async.StartWithContinuations(
+        fetchDataAsync (),
+        (fun result -> printfn $"Success: {result}"),
+        (fun ex -> printfn $"Error: {ex.Message}"),
+        (fun cancelled -> printfn "Cancelled")
+    )
+```
+
+#### Combining Async Operations
+
+F# async shines when composing multiple operations:
+
+```fsharp
+let fetchMultipleAsync () =
+    async {
+        let! results =
+            [ fetchDataAsync ()
+              fetchDataAsync ()
+              fetchDataAsync () ]
+            |> Async.Parallel
+
+        return results |> Array.toList
+    }
+```
+
+The `Async.Parallel` function runs all operations concurrently and waits for all to
+complete. This is much cleaner than manually managing multiple coroutines in Python.
+
+#### Error Handling in Async
+
+Use `try...with` inside async blocks or `Async.Catch` for explicit error handling:
+
+```fsharp
+let safeAsync () =
+    async {
+        try
+            do! Async.Sleep 100
+            failwith "Something went wrong"
+            return "success"
+        with ex ->
+            return $"Error: {ex.Message}"
+    }
+
+let catchExample () =
+    async {
+        let! result = safeAsync () |> Async.Catch
+
+        match result with
+        | Choice1Of2 value -> printfn $"Got: {value}"
+        | Choice2Of2 ex -> printfn $"Failed: {ex.Message}"
+    }
+```
+
+### F`#` Tasks
+
+The `task` computation expression in .NET creates *hot* tasks that start immediately.
+However, when compiled to Python via Fable, tasks become Python coroutines - which are
+*cold* just like Python's native `async def` functions.
+
+A key improvement in Fable v5 is that `task { }` now compiles to Python's native
+`async def` syntax. Previously, Fable generated regular functions returning `Awaitable[T]`,
+which frameworks like FastAPI couldn't recognize as async endpoints.
+
+```fsharp
+open System.Threading.Tasks
+
+let processItemTask (item: string) =
+    task {
+        do! Task.Delay 100
+        return item.ToUpper()
+    }
+```
+
+This generates:
+<!-- include-python: processItemTask (not found) -->
+Now frameworks like FastAPI can detect and handle these as proper async endpoints.
+
+#### Task vs Async: Key Differences
+
+|      Aspect      |       `async { }`       |         `task { }`         |
+| ---------------- | ----------------------- | -------------------------- |
+| .NET execution   | Cold (lazy)             | Hot (immediate)            |
+| Python execution | Cold                    | Cold (coroutines are cold) |
+| Python output    | Wrapped awaitable       | Native `async def`         |
+| Framework compat | Manual bridging         | Direct (FastAPI, etc.)     |
+| Multi-target     | .NET, JS, Python        | .NET, Python               |
+| Composition      | Rich (`Async.Parallel`) | Basic                      |
+
+> **Why the difference?** In .NET, an `async` method is still a regular method - when you
+> call it, the method body starts executing immediately until it hits an `await`. The
+> returned `Task` represents work already in progress.
+>
+> In Python, `async def` creates a *coroutine function*. Calling it doesn't run the body -
+> it returns a coroutine object (a generator-like structure). This coroutine is just a
+> "recipe" that must be driven by an event loop via `await` or `asyncio.run()`.
+>
+> When Fable compiles F# `task` to Python `async def`, the cold Python semantics apply.
+> The advantage of `task` for Python is the native `async def` signature that frameworks
+> recognize.
+
+#### Working with Tasks
+
+```fsharp
+let fetchDataTask () =
+    task {
+        do! Task.Delay 100 // Do some async work
+        return "data from task"
+    }
+
+let taskExample () =
+    task {
+        let! result = fetchDataTask ()
+        return $"Processed: {result}"
+    }
+
+let taskWithLoop () =
+    task {
+        let mutable sum = 0
+        for i in 1..10 do
+            sum <- sum + i
+        return sum
+    }
+```
+
+### Mapping to Python
+
+Understanding how F# async constructs map to Python helps when debugging or integrating
+with Python code.
+
+#### Async Workflows → Python
+
+F# `async` workflows compile to a wrapped async structure:
+
+```fsharp
+let simpleAsync () =
+    async {
+        do! Async.Sleep 500
+        return 42
+    }
+```
+
+In Python, this generates:
+
+```python
+def simple_async(__unit: None = None) -> Async[int32]:
+    def _arrow58(__unit: None = None) -> Async[int32]:
+        def _arrow57(__unit: None = None) -> Async[int32]:
+            return singleton.Return(int32(42))
+
+        return singleton.Bind(sleep(int32(500)), _arrow57)
+
+    return singleton.Delay(_arrow58)
+```
+
+#### Tasks → Native async def
+
+F# `task` expressions compile directly to Python's `async def`:
+
+```fsharp
+let simpleTask () =
+    task {
+        do! Task.Delay 500
+        return 42
+    }
+```
+
+In Python, this generates:
+<!-- include-python: simpleTask (not found) -->
+#### Running Tasks from F`#`
+
+To run a task and get its result in F#:
+
+```fsharp
+let runTaskExample () =
+    let tsk = simpleTask ()
+
+    // Block and wait for result
+    let result = tsk.GetAwaiter().GetResult()
+    printfn $"Got: {result}"
+```
+
+You can also await tasks inside other tasks:
+
+```fsharp
+let chainedTasks () =
+    task {
+        let! first = simpleTask ()
+        let! second = simpleTask ()
+        return first + second
+    }
+```
+
+#### Running in Python's Event Loop
+
+When your compiled Python code runs, you'll need an event loop. For scripts:
+
+```python
+import asyncio
+
+async def main():
+    result = await simple_task()
+    print(result)
+
+asyncio.run(main())
+```
+
+For frameworks like FastAPI, the event loop is managed for you.
+
+### Practical Patterns
+
+#### Async HTTP Requests
+
+Here's a pattern for async HTTP operations (assuming you have bindings for `aiohttp`):
+
+```fsharp
+// Simulated async HTTP - in real code you'd use aiohttp bindings
+let fetchUrlAsync (url: string) =
+    async {
+        do! Async.Sleep 100  // Simulates network delay
+        return $"Response from {url}"
+    }
+
+let fetchMultipleUrls (urls: string list) =
+    async {
+        let! responses =
+            urls
+            |> List.map fetchUrlAsync
+            |> Async.Parallel
+
+        return responses |> Array.toList
+    }
+```
+
+#### Sequential vs Parallel
+
+Choose based on whether operations are independent:
+
+```fsharp
+let sequentialProcessing items =
+    async {
+        let results = ResizeArray()
+        for item in items do
+            let! result = fetchUrlAsync item
+            results.Add(result)
+        return results |> Seq.toList
+    }
+
+let parallelProcessing items =
+    async {
+        let! results =
+            items
+            |> List.map fetchUrlAsync
+            |> Async.Parallel
+        return results |> Array.toList
+    }
+```
+
+#### Cancellation
+
+F# async supports cancellation via `CancellationToken`:
+
+```fsharp
+open System.Threading
+
+let cancellableWork (token: CancellationToken) =
+    async {
+        for i in 1..100 do
+            token.ThrowIfCancellationRequested()
+            do! Async.Sleep 50
+            printfn $"Step {i}"
+        return "Completed"
+    }
+
+let runWithTimeout () =
+    async {
+        use cts = new CancellationTokenSource(2000)  // 2 second timeout
+        try
+            let! result = cancellableWork cts.Token
+            return Some result
+        with
+        | :? OperationCanceledException ->
+            return None
+    }
+```
+
+### When to Use What
+
+#### Use `task { }` for Python Interop
+
+When working with Python frameworks that expect native async functions:
+
+```fsharp
+// FastAPI endpoint (see FastAPI chapter)
+let getItemTask (itemId: int) =
+    task {
+        do! Task.Delay 10
+        return {| id = itemId; name = "Widget" |}
+    }
+```
+
+#### Use `async { }` for Multi-Target Code
+
+When you want the same async code to work on Python, .NET, AND JavaScript:
+
+```fsharp
+// This code compiles to all Fable targets
+let sharedBusinessLogic (input: string) =
+    async {
+        do! Async.Sleep 100
+        let processed = input.ToUpper()
+        return processed
+    }
+```
+
+#### Use `async { }` for Composition
+
+When you need rich composition primitives:
+
+```fsharp
+let complexWorkflow () =
+    async {
+        // Run three operations in parallel
+        let! results =
+            [ fetchDataAsync ()
+              fetchDataAsync ()
+              fetchDataAsync () ]
+            |> Async.Parallel
+
+        // Then do something sequential
+        do! Async.Sleep 100
+
+        return results |> Array.toList
+    }
+```
+
+### Summary
+
+|       Scenario       | Recommendation |
+| -------------------- | -------------- |
+| FastAPI endpoints    | `task { }`     |
+| aiohttp/asyncio libs | `task { }`     |
+| Multi-target library | `async { }`    |
+| Complex composition  | `async { }`    |
+| Cancellation-heavy   | `async { }`    |
+| Simple one-off async | Either works   |
+
+The key insight: **`task` for Python-native `async def` integration (FastAPI, etc.),
+`async` for Fable portability and rich composition**. Both are cold in Python.
+
+In the next chapter, we'll look at Fable v5 features that make Python development even
+smoother.
+
 ## Fable v5: What's New
 
 Fable v5 brings significant improvements to the Python target, with a focus on
@@ -1527,6 +1962,11 @@ in **Rust** using PyO3. The motivation is **correctness**, not performance:
 - **Fixed-size arrays** - No more Python list quirks for byte streams
 - **Reliable numerics** - Fable 4's pure Python numerics were a constant source of bugs
 
+While Rust is fast, don't expect dramatic speedups for typical F# code. Many F#
+functions are higher-order and callback to Python - `List.map`, `List.filter`,
+`Seq.fold`, etc. all invoke your Python lambdas. The Rust core handles the
+data structures correctly; your code still runs at Python speed.
+
 ### fable-library via PyPI
 
 Before Fable v5, the runtime was bundled in the NuGet package and copied
@@ -1538,6 +1978,19 @@ pip install fable-library
 
 # Or with uv (recommended)
 uv add fable-library
+```
+
+For projects, pin your dependencies in `pyproject.toml`. For stable releases use
+a minimum version constraint:
+
+```toml
+dependencies = ["fable-library>=5.0.0"]
+```
+
+For alpha/beta releases, pin the exact version to avoid surprises:
+
+```toml
+dependencies = ["fable-library==5.0.0a21"]
 ```
 
 This makes dependency management much simpler and follows Python conventions.
@@ -1560,10 +2013,10 @@ To use Fable v5, install the alpha CLI:
 
 ```bash
 # Install Fable 5 CLI
-dotnet tool install fable --version 5.0.0-alpha.17
+dotnet tool install fable --version 5.0.0-alpha.21
 
 # Add Fable.Core to your project
-dotnet add package Fable.Core --version 5.0.0-beta.2
+dotnet add package Fable.Core --version 5.0.0-beta.4
 
 # Install the Python runtime
 uv add fable-library==5.0.0a17
@@ -1579,13 +2032,54 @@ The generated Python code will be modern, type-hinted, and ready to run.
 
 ## Pydantic Interop
 
+### What is Pydantic?
+
 [Pydantic](https://docs.pydantic.dev/) is Python's most popular data validation
-library. Fable v5 introduces new attributes that make F# and Pydantic work
-together seamlessly.
+library. It's the de facto standard for modern Python APIs - FastAPI, LangChain,
+and countless other frameworks rely on it.
 
-### The Decorator Attribute
+Pydantic gives you:
 
-The `Py.Decorator` attribute lets you add Python decorators to F# types:
+- **Runtime type validation** - Catch bad data before it causes problems
+- **Automatic serialization** - JSON/dict conversion built-in
+- **Schema generation** - OpenAPI/JSON Schema for free
+- **IDE support** - Full autocomplete from type hints
+
+Fable v5 introduces attributes that make F# and Pydantic work together seamlessly.
+
+### Creating Models in F`#`
+
+#### Using ClassAttributes
+
+The `Py.ClassAttributes` attribute controls how class members are generated,
+which is essential for Pydantic compatibility:
+
+```fsharp
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type User() =
+    inherit BaseModel()
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
+    member val Email: string option = None with get, set
+```
+
+This generates clean Pydantic code:
+
+```python
+from pydantic import BaseModel
+
+class User(BaseModel):
+    Name: str = ""
+    Age: int = 0
+    Email: str | None = None
+```
+
+The `style = Attributes` tells Fable to generate class-level attributes (what
+Pydantic expects) rather than instance attributes set in `__init__`.
+
+#### The Decorator Attribute
+
+For simpler cases like dataclasses, use `Py.Decorate`:
 
 ```fsharp
 [<Py.Decorate("dataclasses.dataclass")>]
@@ -1598,17 +2092,13 @@ type Person = {
 This generates:
 
 ```python
-@dataclasses.dataclass
-class Person:
+@dataclass(eq=False, repr=False, slots=True)
+class Person(Record):
     name: str
     age: int32
 ```
 
-The decorator is applied directly to the generated Python class!
-
-### Decorator with Parameters
-
-You can also pass parameters to decorators:
+You can pass parameters to decorators:
 
 ```fsharp
 [<Py.Decorate("dataclasses.dataclass", "frozen=True, slots=True")>]
@@ -1618,52 +2108,212 @@ type Point = {
 }
 ```
 
-This generates:
+The `frozen=True` makes instances immutable (matching F# record semantics).
 
-```python
-@dataclasses.dataclass(frozen=True, slots=True)
-class Point:
-    x: float
-    y: float
-```
+### Fields and Validation
 
-The `frozen=True` makes instances immutable (matching F# record semantics),
-and `slots=True` optimizes memory usage.
-
-### ClassAttributes for Pydantic
-
-The `Py.ClassAttributes` attribute controls how class members are generated,
-which is essential for Pydantic compatibility:
+Pydantic's `Field()` function lets you add constraints and metadata to fields.
+The `Fable.Python.Pydantic` module provides typed helpers:
 
 ```fsharp
-[<Import("BaseModel", "pydantic")>]
-type BaseModel() = class end
-
 [<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
-type PydanticUser() =
+type Product() =
     inherit BaseModel()
+
     member val Name: string = "" with get, set
-    member val Age: int = 0 with get, set
-    member val Email: string option = None with get, set
+
+    // Field with description
+    member val Description: Field<string> =
+        Field.Description "Product description" with get, set
+
+    // Field with numeric constraints
+    member val Price: Field<float> =
+        Field.Ge 0.0 with get, set  // price >= 0
+
+    // Field with string constraints
+    member val Sku: Field<string> =
+        Field.Pattern "^[A-Z]{2}-[0-9]{4}$" with get, set  // e.g., "AB-1234"
 ```
 
-This generates clean Pydantic code:
+Available field constraints:
+
+|      Function       |      Constraint       |
+| ------------------- | --------------------- |
+| `Field.Gt`          | Greater than          |
+| `Field.Ge`          | Greater than or equal |
+| `Field.Lt`          | Less than             |
+| `Field.Le`          | Less than or equal    |
+| `Field.MinLength`   | Minimum string length |
+| `Field.MaxLength`   | Maximum string length |
+| `Field.Pattern`     | Regex pattern         |
+| `Field.Default`     | Default value         |
+| `Field.Description` | Field description     |
+
+### Importing Python-Defined Models
+
+Sometimes you need to use Pydantic models defined in Python - perhaps from an
+OpenAPI generator, a Python team, or an existing codebase. Here's the pattern:
+
+Given a Python model in `models.py`:
 
 ```python
 from pydantic import BaseModel
 
-class PydanticUser(BaseModel):
-    Age: int32 = int32.ZERO
-    Email: str | None
-    Name: str = ""
+class Customer(BaseModel):
+    id: int
+    name: str
+    email: str | None = None
 ```
 
-You get all of Pydantic's features:
+Create F# bindings:
 
-- **Automatic validation** - Type checking at runtime
-- **Serialization** - JSON/dict conversion built-in
-- **Schema generation** - OpenAPI/JSON Schema support
-- **IDE support** - Full autocomplete and type hints
+```fsharp
+/// Customer model imported from models.py
+[<Import("Customer", "models")>]
+type Customer =
+    abstract id: int with get, set
+    abstract name: string with get, set
+    abstract email: string option with get, set
+
+/// Helper module for creating instances
+[<RequireQualifiedAccess>]
+module Customer =
+    [<Import("Customer", "models")>]
+    [<Emit("$0(id=$1, name=$2, email=$3)")>]
+    let create (id: int) (name: string) (email: string option) : Customer = nativeOnly
+```
+
+Now you can use the Python model from F# with full type safety:
+
+```fsharp
+let customer = Customer.create 1 "Alice" (Some "alice@example.com")
+
+let showCustomer (c: Customer) =
+    printfn "Customer %d: %s" c.id c.name
+    match c.email with
+    | Some email -> printfn "  Email: %s" email
+    | None -> printfn "  No email on file"
+```
+
+This pattern is useful when you want to:
+
+- Use models generated from OpenAPI specs
+- Integrate with an existing Python codebase
+- Share models between Python and F# code
+
+### Type Mappings
+
+F# types map naturally to Python/Pydantic types:
+
+|   F# Type   | Python Type  |             Notes              |
+| ----------- | ------------ | ------------------------------ |
+| `string`    | `str`        |                                |
+| `int`       | `int`        |                                |
+| `float`     | `float`      |                                |
+| `bool`      | `bool`       |                                |
+| `'T option` | `T \| None`  | Modern union syntax            |
+| `'T list`   | `list[T]`    |                                |
+| `'T array`  | `list[T]`    |                                |
+| Record      | `class`      | With `@dataclass` or BaseModel |
+| DU          | Tagged class | See below                      |
+
+#### F# Option to Python Union
+
+Notice how `string option` becomes `str | None` in Python. Fable v5 uses
+modern Python union syntax for optional types, making the generated code
+feel native to Python developers.
+
+### Serialization
+
+Pydantic models have built-in serialization methods:
+
+```fsharp
+let serializationExample () =
+    let user = User()
+    user.Name <- "Alice"
+    user.Age <- 30
+    user.Email <- Some "alice@example.com"
+
+    // Convert to dictionary
+    let dict = user.model_dump()
+
+    // Convert to JSON string
+    let json = user.model_dump_json()
+
+    // Pretty-printed JSON
+    let prettyJson = user.model_dump_json_indented 2
+
+    printfn "JSON: %s" json
+```
+
+The `model_dump()` and `model_dump_json()` methods are available on any
+class that inherits from `BaseModel`.
+
+### The DTO Boundary Pattern
+
+A Pydantic model is not your domain - it's a **Data Transfer Object (DTO)**.
+This distinction is important for well-architected applications:
+
+```text
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│   F# Domain     │   →→→   │   Pydantic DTO  │   →→→   │   JSON / API    │
+│                 │   map   │                 │   dump  │                 │
+│  UserId (Guid)  │         │  Id: str        │         │  "id": "a1b2.." │
+│  Age: int32     │         │  Age: int       │         │  "age": 42      │
+│  Balance: Money │         │  Amount: float  │         │  "amount": 3.14 │
+└─────────────────┘         └─────────────────┘         └─────────────────┘
+```
+
+#### Different Concerns, Different Types
+
+|  Concern   |        Domain Types        |        Transfer Types        |
+| ---------- | -------------------------- | ---------------------------- |
+| Purpose    | Model business logic       | Cross-boundary communication |
+| Semantics  | Rich (overflow, precision) | Simple (JSON-compatible)     |
+| Validation | Business rules             | Schema conformance           |
+| Stability  | Can evolve internally      | API contract                 |
+
+#### Domain Types vs DTO Types
+
+```fsharp
+/// Domain model - uses precise F# types
+type UserId = UserId of System.Guid
+
+type Money = { Amount: decimal; Currency: string }
+
+type DomainUser = {
+    Id: UserId
+    Name: string
+    Age: int32           // Bounded, wrapping arithmetic
+    Balance: Money
+}
+
+/// DTO - uses Python-native types for serialization
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type UserDTO() =
+    inherit BaseModel()
+    member val Id: string = "" with get, set
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
+    member val BalanceAmount: float = 0.0 with get, set
+    member val BalanceCurrency: string = "" with get, set
+```
+
+#### The Mapping Layer
+
+Explicit transformation between domain and DTO:
+
+#### Why This Pattern?
+
+The "boilerplate" of separate DTO types is actually valuable:
+
+1. **Serialization just works** - DTOs use Python-native types
+2. **Domain integrity preserved** - Your `int32` still has proper wrapping behavior
+3. **Clear boundaries** - The mapping layer handles validation and transformation
+4. **API evolution** - DTOs can change independently of domain types
+
+The visual difference between F# records and Pydantic classes is a **feature** -
+it's a speed bump that makes you think about the boundary you're crossing.
 
 ### Why This Matters
 
@@ -1674,30 +2324,11 @@ This interop enables powerful patterns:
 3. **Use Pydantic validation** in FastAPI, LangChain, and other frameworks
 4. **Publish to PyPI** - Your F# types become Python packages
 
-### F# Option to Python Union
-
-Notice how `string option` becomes `str | None` in Python. Fable v5 uses
-modern Python union syntax for optional types, making the generated code
-feel native to Python developers.
-
-### Example: FastAPI Integration
-
-These Pydantic models can be used directly with FastAPI:
-
-```python
-from fastapi import FastAPI
-from your_fsharp_module import PydanticUser
-
-app = FastAPI()
-
-@app.post("/users")
-def create_user(user: PydanticUser) -> PydanticUser:
-    # Pydantic validates the request automatically
-    return user
-```
-
 You get the best of both worlds: F#'s type safety during development,
 and Python's rich ecosystem at runtime.
+
+In the next chapter, we'll see how to use these Pydantic models with FastAPI
+to build type-safe web APIs.
 
 ## Units of Measure
 
@@ -1958,19 +2589,24 @@ Read the input file, convert it, and print the result:
 ```fsharp
 /// Gets the value following a flag argument (e.g., --python-file path.py).
 let getFlagValue (flag: string) (args: string[]) : string option =
+    // Find the index of the flag in args
     args
     |> Array.tryFindIndex ((=) flag)
-    |> Option.bind (fun i ->
-        if i + 1 < args.Length then Some args.[i + 1] else None)
+    // Return the next argument if it exists
+    |> Option.bind (fun i -> if i + 1 < args.Length then Some args.[i + 1] else None)
 
 /// Extracts positional arguments (file paths) from command line args.
 /// Filters out flags (--foo) and their values (--python-file path.py).
 let getPositionalArgs (args: string[]) : string[] =
     let isFlag (arg: string) = arg.StartsWith "--"
     let isValueOfFlag i = i > 0 && args.[i - 1] = "--python-file"
+
+    // Pair each argument with its index
     args
     |> Array.indexed
+    // Keep only non-flags that aren't values of flags
     |> Array.filter (fun (i, arg) -> not (isFlag arg) && not (isValueOfFlag i))
+    // Extract just the argument strings
     |> Array.map snd
 
 /// Main entry point. Converts a literate F# file to Markdown.
