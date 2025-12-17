@@ -67,10 +67,6 @@ Utility functions for naming conversion and line classification:
 
 The parser converts source lines into a Block AST using a fold:
 
-## PythonExtract Module
-
-Extracts symbol definitions from transpiled Python source code:
-
 ## Transform Module
 
 Pure transformations on the document AST:
@@ -103,18 +99,18 @@ The extraction is smart about Python syntax:
 For example, the extractSymbol function in F# generates this Python:
 
 ```python
-def PythonExtract_extractSymbol(symbol: str, lines: Array[str]) -> str | None:
+def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
     """Extracts a single symbol definition from Python source lines."""
 
     def mapping(def_index: int32, symbol: Any = symbol, lines: Any = lines) -> str:
-        start_index: int32 = PythonExtract_findDecoratorStart(lines, def_index)
-        if PythonExtract_isMultilineDefinition(lines[def_index]):
-            return PythonExtract_extractMultilineBody(start_index, def_index, lines)
+        start_index: int32 = find_decorator_start(lines, def_index)
+        if is_multiline_definition(lines[def_index]):
+            return extract_multiline_body(start_index, def_index, lines)
 
         else:
             return lines[def_index]
 
-    return map_1(mapping, PythonExtract_findDefinitionIndex(symbol, lines))
+    return map(mapping, find_definition_index(symbol, lines))
 ```
 
 ## Main Entry Point
@@ -124,19 +120,24 @@ Read the input file, convert it, and print the result:
 ```fsharp
 /// Gets the value following a flag argument (e.g., --python-file path.py).
 let getFlagValue (flag: string) (args: string[]) : string option =
+    // Find the index of the flag in args
     args
     |> Array.tryFindIndex ((=) flag)
-    |> Option.bind (fun i ->
-        if i + 1 < args.Length then Some args.[i + 1] else None)
+    // Return the next argument if it exists
+    |> Option.bind (fun i -> if i + 1 < args.Length then Some args.[i + 1] else None)
 
 /// Extracts positional arguments (file paths) from command line args.
 /// Filters out flags (--foo) and their values (--python-file path.py).
 let getPositionalArgs (args: string[]) : string[] =
     let isFlag (arg: string) = arg.StartsWith "--"
     let isValueOfFlag i = i > 0 && args.[i - 1] = "--python-file"
+
+    // Pair each argument with its index
     args
     |> Array.indexed
+    // Keep only non-flags that aren't values of flags
     |> Array.filter (fun (i, arg) -> not (isFlag arg) && not (isValueOfFlag i))
+    // Extract just the argument strings
     |> Array.map snd
 
 /// Main entry point. Converts a literate F# file to Markdown.

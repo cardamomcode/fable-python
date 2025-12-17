@@ -243,13 +243,7 @@ let simpleTask () =
 ```
 
 In Python, this generates:
-
-```python
-async def simple_task() -> int:
-    await asyncio.sleep(0.5)
-    return 42
-```
-
+<!-- include-python: simpleTask (not found) -->
 ### Running in Python's Event Loop
 
 When your compiled Python code runs, you'll need an event loop. For scripts:
