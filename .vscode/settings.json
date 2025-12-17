@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "coro",
         "destructures",
         "elif",
         "eprintln",
@@ -7,7 +8,9 @@
         "Fantomas",
         "fastapi",
         "Feliz",
+        "getcwd",
         "Hashnode",
+        "pathlib",
         "pyname",
         "stroustrup"
     ]

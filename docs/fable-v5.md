@@ -38,6 +38,11 @@ in **Rust** using PyO3. The motivation is **correctness**, not performance:
 - **Fixed-size arrays** - No more Python list quirks for byte streams
 - **Reliable numerics** - Fable 4's pure Python numerics were a constant source of bugs
 
+While Rust is fast, don't expect dramatic speedups for typical F# code. Many F#
+functions are higher-order and callback to Python - `List.map`, `List.filter`,
+`Seq.fold`, etc. all invoke your Python lambdas. The Rust core handles the
+data structures correctly; your code still runs at Python speed.
+
 ## fable-library via PyPI
 
 Before Fable v5, the runtime was bundled in the NuGet package and copied
@@ -49,6 +54,19 @@ pip install fable-library
 
 # Or with uv (recommended)
 uv add fable-library
+```
+
+For projects, pin your dependencies in `pyproject.toml`. For stable releases use
+a minimum version constraint:
+
+```toml
+dependencies = ["fable-library>=5.0.0"]
+```
+
+For alpha/beta releases, pin the exact version to avoid surprises:
+
+```toml
+dependencies = ["fable-library==5.0.0a21"]
 ```
 
 This makes dependency management much simpler and follows Python conventions.
@@ -71,10 +89,10 @@ To use Fable v5, install the alpha CLI:
 
 ```bash
 # Install Fable 5 CLI
-dotnet tool install fable --version 5.0.0-alpha.17
+dotnet tool install fable --version 5.0.0-alpha.21
 
 # Add Fable.Core to your project
-dotnet add package Fable.Core --version 5.0.0-beta.2
+dotnet add package Fable.Core --version 5.0.0-beta.4
 
 # Install the Python runtime
 uv add fable-library==5.0.0a17
