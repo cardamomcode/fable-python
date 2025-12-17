@@ -3,7 +3,7 @@
 
 # Chapter order for documentation generation
 # Edit this list to reorder or add chapters
-chapters := "introduction python getting-started interop bindings compatibility fable-v5 pydantic units-of-measure"
+chapters := "introduction python getting-started interop bindings compatibility async-programming fable-v5 pydantic units-of-measure"
 
 # Default: show help
 default:

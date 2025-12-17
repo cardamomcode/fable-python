@@ -89,6 +89,7 @@ let numbers = [ 1; 2; 3; 4; 5 ]
 let mutableList = ResizeArray<int>()
 ```
 
+
 ```python
 greeting: str = "Hello, Python!"
 
@@ -162,6 +163,7 @@ let person = {
     Email = Some "alice@example.com"
 }
 ```
+
 
 ```python
 @dataclass(eq=False, repr=False, slots=True)
