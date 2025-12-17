@@ -23,6 +23,10 @@ F# is a functional-first language with powerful features like:
 
 With Fable.Python, you get all these benefits while targeting the Python ecosystem.
 
+Python is the [most popular programming language](https://www.tiobe.com/tiobe-index/)
+in the world. And no matter what you think of Python, it will always be the second
+best language for everything. That ubiquity is exactly why Fable.Python exists.
+
 ## When to Use Fable.Python
 
 Fable.Python is a great choice when:

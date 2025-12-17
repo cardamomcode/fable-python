@@ -123,24 +123,13 @@ The `task` computation expression in .NET creates *hot* tasks that start immedia
 However, when compiled to Python via Fable, tasks become Python coroutines - which are
 *cold* just like Python's native `async def` functions.
 
-In Fable v5, tasks compile to Python's native `async def` syntax, enabling seamless
-integration with frameworks like FastAPI.
+A key improvement in Fable v5 is that `task { }` now compiles to Python's native
+`async def` syntax. Previously, Fable generated regular functions returning `Awaitable[T]`,
+which frameworks like FastAPI couldn't recognize as async endpoints.
 
 ```fsharp
 open System.Threading.Tasks
 
-let fetchDataTask () =
-    task {
-        do! Task.Delay 1000
-        return "data from task"
-    }
-```
-
-### Fable v5: Native Python Async
-
-A key improvement in Fable v5 is that `task { }` now compiles to Python's `async def`:
-
-```fsharp
 let processItemTask (item: string) =
     task {
         do! Task.Delay 100
@@ -149,15 +138,8 @@ let processItemTask (item: string) =
 ```
 
 This generates:
-
-```python
-async def process_item_task(item: str) -> str:
-    await asyncio.sleep(0.1)
-    return item.upper()
-```
-
-Previously, Fable generated regular functions returning `Awaitable[T]`, which frameworks
-like FastAPI couldn't recognize as async endpoints. Now the integration is seamless.
+<!-- include-python: processItemTask (not found) -->
+Now frameworks like FastAPI can detect and handle these as proper async endpoints.
 
 ### Task vs Async: Key Differences
 
@@ -185,6 +167,12 @@ like FastAPI couldn't recognize as async endpoints. Now the integration is seaml
 ### Working with Tasks
 
 ```fsharp
+let fetchDataTask () =
+    task {
+        do! Task.Delay 100 // Do some async work
+        return "data from task"
+    }
+
 let taskExample () =
     task {
         let! result = fetchDataTask ()
@@ -221,13 +209,13 @@ In Python, this generates:
 
 ```python
 def simple_async(__unit: None = None) -> Async[int32]:
-    def _arrow61(__unit: None = None) -> Async[int32]:
-        def _arrow60(__unit: None = None) -> Async[int32]:
+    def _arrow58(__unit: None = None) -> Async[int32]:
+        def _arrow57(__unit: None = None) -> Async[int32]:
             return singleton.Return(int32(42))
 
-        return singleton.Bind(sleep(int32(500)), _arrow60)
+        return singleton.Bind(sleep(int32(500)), _arrow57)
 
-    return singleton.Delay(_arrow61)
+    return singleton.Delay(_arrow58)
 ```
 
 ### Tasks → Native async def
@@ -244,6 +232,30 @@ let simpleTask () =
 
 In Python, this generates:
 <!-- include-python: simpleTask (not found) -->
+### Running Tasks from F`#`
+
+To run a task and get its result in F#:
+
+```fsharp
+let runTaskExample () =
+    let tsk = simpleTask ()
+
+    // Block and wait for result
+    let result = tsk.GetAwaiter().GetResult()
+    printfn $"Got: {result}"
+```
+
+You can also await tasks inside other tasks:
+
+```fsharp
+let chainedTasks () =
+    task {
+        let! first = simpleTask ()
+        let! second = simpleTask ()
+        return first + second
+    }
+```
+
 ### Running in Python's Event Loop
 
 When your compiled Python code runs, you'll need an event loop. For scripts:
@@ -251,7 +263,6 @@ When your compiled Python code runs, you'll need an event loop. For scripts:
 ```python
 import asyncio
 
-# If using task-based code
 async def main():
     result = await simple_task()
     print(result)

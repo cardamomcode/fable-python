@@ -10,7 +10,8 @@ running as Python.
 
 You'll need:
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later)
+- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later. We recommend
+  installing the latest LTS version, currently .NET 10
 - [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
 
 ## Project Setup
