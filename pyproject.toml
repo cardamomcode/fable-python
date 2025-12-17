@@ -20,3 +20,6 @@ dev = [
 
 [tool.ruff]
 exclude = ["fable_modules"]
+
+[tool.ruff.lint]
+ignore = ["F841"]  # Unused variable - common in generated Fable code
