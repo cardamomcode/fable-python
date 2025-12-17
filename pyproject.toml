@@ -9,7 +9,7 @@ authors = [
 ]
 license = {text = "ISC"}
 dependencies = [
-    "fable-library==5.0.0a20",
+    "fable-library==5.0.0a21",
     "pydantic>=2.12.5",
 ]
 
@@ -20,3 +20,9 @@ dev = [
 
 [tool.ruff]
 exclude = ["fable_modules"]
+
+[tool.ruff.lint]
+ignore = [
+    "F841",  # Unused variable - common in generated Fable code
+    "F401",  # Unused import - common in generated Fable code
+]

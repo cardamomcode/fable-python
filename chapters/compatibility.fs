@@ -210,16 +210,23 @@ let mapOps = Map.ofList [ ("a", 1); ("b", 2) ]
 
 ### Options Are Erased
 
-Options are optimized away at runtime:
+Options are erased at runtime, which is actually a feature rather than a limitation.
+This makes interop with Python libraries seamless - you can pass F# option values
+directly to Python functions expecting `T | None`:
 *)
 
 let someValue = Some 42 // Compiles to just: 42
 let noneValue = None // Compiles to: None
 
 (**
-Note that Fable.Python uses a `SomeWrapper` class to handle nested options correctly.
-`Some None` compiles to `SomeWrapper(None)`, which is distinct from plain `None`.
-This means `Some (Some x)`, `Some None`, and `None` are all properly distinguishable.
+This erasure means Python code receives native values without any wrapper overhead.
+When calling a Python library that returns `Optional[T]`, you get values that work
+directly with F# pattern matching.
+
+For the rare edge case of nested options (`Option<Option<T>>`), Fable.Python uses
+a `SomeWrapper` to distinguish `Some None` from `None`. However, nested options
+are uncommon in practice - the F# compiler warns about them in type annotations,
+and well-designed library bindings avoid exposing them at API boundaries.
 
 ### Multi-line Lambdas
 

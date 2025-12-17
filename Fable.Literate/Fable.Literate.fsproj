@@ -7,12 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Core" Version="5.0.0-beta.3" />
-    <PackageReference Include="Fable.Python" Version="5.0.0-alpha.11" />
+    <PackageReference Include="Fable.Core" Version="5.0.0-beta.4" />
+    <PackageReference Include="Fable.Python" Version="5.0.0-alpha.21.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="fabletext.fs" />
+    <Compile Include="Python.fs" />
+    <Compile Include="App.fs" />
   </ItemGroup>
 
 </Project>
