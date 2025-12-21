@@ -64,25 +64,27 @@ just clean      # Remove generated files
 
 ```text
 chapters/
-├── introduction.fs       # What is Fable.Python
-├── python.fs             # F# for Python developers
-├── getting-started.fs    # Setup and first project
-├── interop.fs            # Using Python libraries
-├── bindings.fs           # Creating bindings
-├── compatibility.fs      # F# feature support
-├── fable-v5.fs           # What's new in Fable v5
-├── pydantic.fs           # Pydantic interop
-└── units-of-measure.fs   # Dimensional analysis
-tools/
-├── fabletext.fs          # Fabletext converter (F#)
-└── fabletext.fsproj
+├── Introduction.fs       # What is Fable.Python
+├── Python.fs             # F# for Python developers
+├── GettingStarted.fs     # Setup and first project
+├── Interop.fs            # Using Python libraries
+├── Bindings.fs           # Creating bindings
+├── Compatibility.fs      # F# feature support
+├── AsyncProgramming.fs   # Async workflows
+├── Testing.fs            # Testing with Python
+├── FableV5.fs            # What's new in Fable v5
+├── Pydantic.fs           # Pydantic interop
+└── UnitsOfMeasure.fs     # Dimensional analysis
+Fable.Literate/
+├── App.fs                # Fable.Literate converter (F#)
+└── Fable.Literate.fsproj
 output/
 ├── chapters/             # Generated Python from chapters
-└── tools/
-    └── fabletext.py      # Generated converter (Python)
+└── Fable.Literate/
+    └── app.py            # Generated converter (Python)
 docs/
-├── introduction.md       # Individual chapter docs
-├── python.md
+├── Introduction.md       # Individual chapter docs
+├── Python.md
 ├── ...
 └── blogpost.md           # Concatenated for Hashnode
 ```
@@ -92,7 +94,7 @@ docs/
 Defined in `justfile`:
 
 ```just
-chapters := "introduction python getting-started interop bindings compatibility fable-v5 pydantic units-of-measure"
+chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure"
 ```
 
 To add a new chapter, just add the file and update this list.
