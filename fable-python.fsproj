@@ -21,6 +21,7 @@
     <Compile Include="chapters/Testing.fs" />
     <Compile Include="chapters/FableV5.fs" />
     <Compile Include="chapters/Pydantic.fs" />
+    <Compile Include="chapters/FastAPI.fs" />
     <Compile Include="chapters/UnitsOfMeasure.fs" />
     <Compile Include="chapters/Summary.fs" />
   </ItemGroup>

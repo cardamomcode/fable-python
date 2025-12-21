@@ -10,8 +10,22 @@ Let's set up a Fable.Python project from scratch and get our first F# code runni
 You'll need:
 
 - [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later. We recommend
-  installing the latest LTS version, currently .NET 10
+  installing the latest LTS version, currently .NET 10)
 - [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
+- [uv](https://docs.astral.sh/uv/) (recommended) - A fast Python package manager written in Rust
+
+If you don't have `uv` installed:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+You can also use `pip` if you prefer, but `uv` is significantly faster and handles
+virtual environments automatically.
 
 ## Project Setup
 
@@ -37,6 +51,10 @@ dotnet add package Fable.Core --version 5.0.0-beta.4
 Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
+# Using uv (recommended)
+uv add "fable-library==5.0.0a21"
+
+# Or with pip
 pip install "fable-library==5.0.0a21"
 ```
 
@@ -78,6 +96,10 @@ dotnet fable --lang python
 This creates `program.py` in your project directory. Run it:
 
 ```bash
+# Using uv
+uv run python program.py
+
+# Or directly with python
 python3 program.py
 ```
 

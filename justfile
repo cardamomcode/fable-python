@@ -3,7 +3,7 @@
 
 # Chapter order for documentation generation
 # Edit this list to reorder or add chapters
-chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure FableLiterate Summary"
+chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic FastAPI UnitsOfMeasure FableLiterate Summary"
 
 # Default: show help
 default:
@@ -38,7 +38,9 @@ generate: build format-python
     mkdir -p docs
     for name in {{chapters}}; do
         # Convert PascalCase to snake_case for Python file naming
-        pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
+        # First, handle common acronyms (API, HTTP, etc.) by treating them as single units
+        # Then convert remaining PascalCase to snake_case
+        pyname=$(echo "$name" | sed 's/API/Api/g; s/HTTP/Http/g' | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
         # FableLiterate uses different python output path (symlink to Fable.Literate/App.fs)
         if [ "$name" = "FableLiterate" ]; then
             pyfile="output/Fable.Literate/python.py"
@@ -60,7 +62,8 @@ blogpost: build format-python
     first=true
     for name in {{chapters}}; do
         # Convert PascalCase to snake_case for Python file naming
-        pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
+        # First, handle common acronyms (API, HTTP, etc.) by treating them as single units
+        pyname=$(echo "$name" | sed 's/API/Api/g; s/HTTP/Http/g' | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
         # FableLiterate uses different python output path (symlink to Fable.Literate/App.fs)
         if [ "$name" = "FableLiterate" ]; then
             pyfile="output/Fable.Literate/python.py"

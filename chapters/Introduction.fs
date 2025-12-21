@@ -7,7 +7,7 @@ module Introduction
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
 this wonderful tradition that brings the F# community together every year!
 
-Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
+Welcome to this guide on [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
 ## Table of Contents
@@ -21,8 +21,9 @@ a compiler that transforms F# code into Python.
 7. [Testing](#heading-testing-fablepython-projects) - Using pytest with F# code
 8. [Fable v5](#heading-fable-v5-whats-new) - New features and the Rust core
 9. [Pydantic Integration](#heading-pydantic-interop) - Type-safe data validation
-10. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
-11. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
+10. [FastAPI](#heading-fastapi) - Building type-safe web APIs
+11. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
+12. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
 
 **A teaser:** the final chapter reveals how this entire blog post was generated. The converter that transforms F#
 literate files into Markdown is itself written in F#, compiled to Python with Fable, and documented using its own
@@ -63,7 +64,7 @@ Fable.Python is a great choice when:
 - **Units of measure** - F#'s compile-time dimensional analysis prevents unit errors
   that Python can't catch
 
-## When NOT to Use Fable.Python
+## When Not to Use Fable.Python
 
 - When your F# code depends on .NET libraries without Fable support
 - Performance-critical code (Python has runtime overhead)

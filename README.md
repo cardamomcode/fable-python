@@ -12,13 +12,14 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 4. **Interop** - Using existing Python libraries and Fable.Python bindings
 5. **Bindings** - Creating your own type-safe bindings for Python libraries
 6. **Compatibility** - Supported F# features and limitations
-7. **Fable v5** - What's new in Fable v5 for Python
-8. **Libraries** - Existing ecosystem (Thoth.Json, AsyncRx, Siren, etc.) *(coming soon)*
-9. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
-10. **Units of Measure** - Compile-time dimensional analysis
-11. **Testing** - Testing F# code with Python test runners
-12. **Fable.Literate** - The self-documenting converter
-13. **Summary** - Wrap-up, resources, and contributing
+7. **Async Programming** - F# async and Python asyncio
+8. **Testing** - Testing F# code with Python test runners
+9. **Fable v5** - What's new in Fable v5 for Python
+10. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
+11. **FastAPI** - Building type-safe web APIs with F#
+12. **Units of Measure** - Compile-time dimensional analysis
+13. **Fable.Literate** - The self-documenting converter
+14. **Summary** - Wrap-up, resources, and contributing
 
 ## The Strange Loop
 
