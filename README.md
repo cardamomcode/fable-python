@@ -38,7 +38,6 @@ The blog post is its own proof of concept.
 # Install dependencies
 just setup
 just restore
-npm install
 
 # Build everything (F# → Python → Markdown)
 just all

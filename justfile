@@ -14,9 +14,10 @@ setup:
     dotnet tool restore
     uv sync
 
-# Restore NuGet packages
+# Restore NuGet packages and npm dependencies
 restore:
     dotnet restore
+    npm install
 
 # Build all chapters to Python
 build:
