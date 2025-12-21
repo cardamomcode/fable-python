@@ -1,5 +1,8 @@
 # Introduction to Fable.Python
 
+> This post is part of the [F# Advent Calendar 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/).
+Thank you, Sergey Tihon, for organizing this wonderful tradition that brings the F# community together every year!
+
 Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
@@ -99,11 +102,8 @@ the `area` function.
 
 ## What's Next?
 
-In the following chapters, we'll cover:
-
-- **Getting Started** - Setting up your development environment
-- **Bindings** - Working with Python libraries from F#
-- **Compatibility** - Understanding what F# features are supported
+In the following chapters, we'll explore setting up your environment,
+working with Python libraries, and understanding F# compatibility with Fable.
 
 Let's begin.
 
@@ -1563,19 +1563,13 @@ There are several ways to execute an async workflow:
 
 ```fsharp
 let runAsyncExample () =
+    // Run synchronously (blocking) - simplest approach
+    let result = fetchDataAsync () |> Async.RunSynchronously
+
     // Start immediately (non-blocking) - Ignore discards the result
     fetchDataAsync () |> Async.Ignore |> Async.StartImmediate
 
-    // Run synchronously (blocking)
-    let result = fetchDataAsync () |> Async.RunSynchronously
-
-    // Start with explicit continuations
-    Async.StartWithContinuations(
-        fetchDataAsync (),
-        (fun result -> printfn $"Success: {result}"),
-        (fun ex -> printfn $"Error: {ex.Message}"),
-        (fun cancelled -> printfn "Cancelled")
-    )
+    result
 ```
 
 #### Combining Async Operations
@@ -1644,7 +1638,22 @@ let processItemTask (item: string) =
 ```
 
 This generates:
-<!-- include-python: processItemTask (not found) -->
+
+```python
+async def process_item_task(item: str) -> str:
+    builder_0040: Any = task()
+
+    def _arrow43(
+        __unit: None = None, item: Any = item
+    ) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow42(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            return builder_0040.Return(item.upper())
+
+        return builder_0040.Bind(delay(int32(100)), _arrow42)
+
+    return await builder_0040.Run(builder_0040.Delay(_arrow43))
+```
+
 Now frameworks like FastAPI can detect and handle these as proper async endpoints.
 
 #### Task vs Async: Key Differences
@@ -1715,13 +1724,13 @@ In Python, this generates:
 
 ```python
 def simple_async(__unit: None = None) -> Async[int32]:
-    def _arrow58(__unit: None = None) -> Async[int32]:
-        def _arrow57(__unit: None = None) -> Async[int32]:
+    def _arrow52(__unit: None = None) -> Async[int32]:
+        def _arrow51(__unit: None = None) -> Async[int32]:
             return singleton.Return(int32(42))
 
-        return singleton.Bind(sleep(int32(500)), _arrow57)
+        return singleton.Bind(sleep(int32(500)), _arrow51)
 
-    return singleton.Delay(_arrow58)
+    return singleton.Delay(_arrow52)
 ```
 
 #### Tasks → Native async def
@@ -1737,7 +1746,20 @@ let simpleTask () =
 ```
 
 In Python, this generates:
-<!-- include-python: simpleTask (not found) -->
+
+```python
+async def simple_task(__unit: None = None) -> int32:
+    builder_0040: Any = task()
+
+    def _arrow54(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow53(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            return builder_0040.Return(int32(42))
+
+        return builder_0040.Bind(delay(int32(500)), _arrow53)
+
+    return await builder_0040.Run(builder_0040.Delay(_arrow54))
+```
+
 #### Running Tasks from F`#`
 
 To run a task and get its result in F#:
@@ -1855,6 +1877,22 @@ let runWithTimeout () =
     }
 ```
 
+#### Advanced: StartWithContinuations
+
+For fine-grained control over success, error, and cancellation outcomes, use
+`Async.StartWithContinuations`. This is useful when you need different handling paths
+for each case:
+
+```fsharp
+let runWithContinuations () =
+    Async.StartWithContinuations(
+        fetchDataAsync (),
+        (fun result -> printfn $"Success: {result}"),
+        (fun ex -> printfn $"Error: {ex.Message}"),
+        (fun _cancelled -> printfn "Cancelled")
+    )
+```
+
 ### When to Use What
 
 #### Use `task { }` for Python Interop
@@ -1921,6 +1959,299 @@ The key insight: **`task` for Python-native `async def` integration (FastAPI, et
 
 In the next chapter, we'll look at Fable v5 features that make Python development even
 smoother.
+
+## Testing Fable.Python Projects
+
+F# is a strongly typed language - if it compiles, it often just works. But
+"compiles" doesn't mean "correct". We still need testing to verify our
+assumptions and ensure code does what we expect. This is especially true for:
+
+- **Parsers and transformers**: Like Fable.Literate itself, where logic
+  correctness matters more than type safety
+- **External dependencies**: Side effects from file I/O, network calls, or
+  Python libraries can't be checked at compile time
+- **Cross-platform transpilation**: When targeting Python (or JavaScript),
+  we need confidence that generated code behaves identically to .NET
+
+Fable itself demonstrates this commitment to correctness: the compiler has over
+2000 unit tests for Python transpilation and more than 2600 tests for JavaScript.
+Without this extensive test suite, maintaining Fable would be impossible - the
+maintainers would be constantly battling regressions for every change or fix.
+
+With Fable.Python, you can write tests in F# that run on both .NET and Python,
+catching platform-specific issues before they reach production.
+
+This chapter covers two testing approaches:
+
+- **XUnit-style**: Familiar to many developers, uses pytest on Python
+- **Expecto-style**: Functional approach using Fable.Pyxpecto
+
+### XUnit-Style Testing with Fable.Python.Testing
+
+The `Fable.Python.Testing` module provides a simple, cross-platform testing API
+that works with pytest on Python. Just open the module and start writing tests:
+
+```fsharp
+open Fable.Python.Testing
+
+[<Fact>]
+let ``test addition works`` () =
+    let result = 2 + 2
+    result |> equal 4
+
+[<Fact>]
+let ``test list operations work`` () =
+    let numbers = [1; 2; 3]
+    numbers |> List.sum |> equal 6
+    numbers |> List.length |> equal 3
+
+[<Fact>]
+let ``test string concatenation works`` () =
+    let greeting = "Hello" + " " + "World"
+    greeting |> equal "Hello World"
+```
+
+#### Available Assertions
+
+The module provides these assertion functions:
+
+| Function                       | Description                                |
+|--------------------------------|--------------------------------------------|
+| `equal expected actual`        | Assert equality (F# style: expected first) |
+| `notEqual expected actual`     | Assert inequality                          |
+| `throwsError msg f`            | Assert function throws with exact message  |
+| `throwsErrorContaining sub f`  | Assert error contains substring            |
+| `throwsAnyError f`             | Assert function throws any error           |
+| `doesntThrow f`                | Assert function completes without error    |
+
+#### Testing Exceptions
+
+The exception helpers make it easy to test error cases:
+
+```fsharp
+[<Fact>]
+let ``test throws on invalid input`` () =
+    throwsAnyError (fun () ->
+        failwith "something went wrong"
+    )
+
+[<Fact>]
+let ``test error message contains text`` () =
+    throwsErrorContaining "invalid" (fun () ->
+        failwith "The input was invalid"
+    )
+```
+
+#### Running with Pytest
+
+Fable transpiles `[<Fact>]` functions to Python functions prefixed with `test_`,
+which pytest discovers automatically:
+
+```bash
+# Transpile tests to Python
+dotnet fable test/ --lang python --outDir build/tests
+
+# Run with pytest
+pytest build/tests
+```
+
+Pytest output looks familiar:
+
+```text
+========================= test session starts =========================
+collected 3 items
+
+test_my_module.py::test_addition_works PASSED                    [ 33%]
+test_my_module.py::test_list_operations_work PASSED              [ 66%]
+test_my_module.py::test_string_concatenation_works PASSED        [100%]
+
+========================== 3 passed in 0.02s ==========================
+```
+
+### Expecto-Style Testing with Pyxpecto
+
+[Expecto](https://github.com/haf/expecto) is a functional testing library for
+F#. [Fable.Pyxpecto](https://www.nuget.org/packages/Fable.Pyxpecto) brings the
+same API to Fable, supporting JavaScript, Python, and .NET.
+
+#### Why Expecto-Style?
+
+- **Composable**: Tests are values you can combine and transform
+- **No magic**: No reflection, no attributes - just functions
+- **Familiar F# idioms**: Uses computation expressions and pipelines
+
+#### Setting Up Pyxpecto
+
+Add the package to your test project:
+
+```bash
+dotnet add package Fable.Pyxpecto --version 2.0.0
+```
+
+Use conditional compilation to support both platforms:
+
+```fsharp
+#if FABLE_COMPILER
+open Fable.Pyxpecto
+#else
+open Expecto
+#endif
+```
+
+#### Writing Expecto-Style Tests
+
+Tests are built using `testCase` and `testList`:
+
+```fsharp
+let mathTests =
+    testList "Math" [
+        testCase "addition works" <| fun _ ->
+            let result = 2 + 2
+            Expect.equal result 4 "2 + 2 should equal 4"
+
+        testCase "multiplication works" <| fun _ ->
+            let result = 3 * 7
+            Expect.equal result 21 "3 * 7 should equal 21"
+    ]
+
+let stringTests =
+    testList "String" [
+        testCase "concatenation works" <| fun _ ->
+            let result = "Hello" + " " + "World"
+            Expect.equal result "Hello World" "strings should concatenate"
+
+        testCase "length is correct" <| fun _ ->
+            Expect.equal ("test".Length) 4 "length should be 4"
+    ]
+```
+
+#### Composing Test Suites
+
+Tests are just values, so you can compose them naturally:
+
+```fsharp
+let allTests =
+    testList "All" [
+        mathTests
+        stringTests
+    ]
+```
+
+#### Running Pyxpecto Tests
+
+Create an entry point that runs differently on each platform:
+
+```fsharp
+[<EntryPoint>]
+let main args =
+#if FABLE_COMPILER
+    Pyxpecto.runTests [||] allTests
+#else
+    runTestsWithCLIArgs [] args allTests
+#endif
+```
+
+Run on .NET:
+
+```bash
+dotnet run --project MyTests.fsproj
+```
+
+Run on Python:
+
+```bash
+dotnet fable MyTests/ --lang python --outDir build/tests
+python build/tests/program.py
+```
+
+### Dual-Target Test Projects
+
+For maximum confidence, run your tests on both platforms. Here's a complete
+project setup:
+
+#### Project File (.fsproj)
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="10.2.1" />
+    <PackageReference Include="Fable.Pyxpecto" Version="2.0.0" />
+    <PackageReference Include="Fable.Core" Version="5.0.0-beta.4" />
+    <PackageReference Include="Fable.Python" Version="5.0.0-alpha.21" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Tests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>
+```
+
+#### Justfile Commands
+
+```just
+# Run tests (.NET)
+test:
+    dotnet run --project Tests/Tests.fsproj
+
+# Build tests to Python
+build-tests:
+    dotnet fable Tests/ --lang python --outDir output/tests
+
+# Run tests (Python)
+test-python: build-tests
+    uv run python output/tests/program.py
+
+# Run all tests (both platforms)
+test-all: test test-python
+```
+
+### Testing Async Code
+
+Both approaches support testing async code. With Pyxpecto:
+
+```fsharp
+testCase "async operations work" <| fun _ ->
+    let computation = task {
+        let! a = asyncio.sleep(0.01, 10)
+        let! b = asyncio.sleep(0.01, 20)
+        return a + b
+    }
+
+    let result = asyncio.run computation
+    Expect.equal result 30 "async sum should work"
+```
+
+### Best Practices
+
+1. **Test on both platforms**: Subtle differences between .NET and Python
+   can cause bugs. Dual-target testing catches these early.
+
+2. **Use descriptive test names**: F# allows backtick identifiers, so use
+   them for readable names like `` `test addition works` ``.
+
+3. **Keep tests focused**: Each test should verify one behavior.
+
+4. **Prefer Expect assertions**: They provide better error messages than
+   raw assertions.
+
+5. **Organize with testList**: Group related tests for better output.
+
+### Summary
+
+| Approach               | Best For                                | Runner   |
+|------------------------|-----------------------------------------|----------|
+| Fable.Python.Testing   | Simple tests, pytest integration        | pytest   |
+| Expecto/Pyxpecto       | Functional composition, better messages | Pyxpecto |
+
+Both approaches work well with Fable.Python. For most projects,
+`Fable.Python.Testing` provides the simplest path - just open the module and
+start writing `[<Fact>]` tests that pytest discovers automatically.
 
 ## Fable v5: What's New
 
@@ -2303,6 +2634,32 @@ type UserDTO() =
 
 Explicit transformation between domain and DTO:
 
+```fsharp
+module UserMapping =
+    let toDTO (user: DomainUser) : UserDTO =
+        let dto = UserDTO()
+        dto.Id <- match user.Id with UserId guid -> string guid
+        dto.Name <- user.Name
+        dto.Age <- int user.Age
+        dto.BalanceAmount <- float user.Balance.Amount
+        dto.BalanceCurrency <- user.Balance.Currency
+        dto
+
+    let fromDTO (dto: UserDTO) : Result<DomainUser, string> =
+        try
+            Ok {
+                Id = UserId (System.Guid.Parse dto.Id)
+                Name = dto.Name
+                Age = int32 dto.Age
+                Balance = {
+                    Amount = decimal dto.BalanceAmount
+                    Currency = dto.BalanceCurrency
+                }
+            }
+        with ex ->
+            Error ex.Message
+```
+
 #### Why This Pattern?
 
 The "boilerplate" of separate DTO types is actually valuable:
@@ -2532,21 +2889,200 @@ type Document = Block list
 
 Utility functions for naming conversion and line classification:
 
+```fsharp
+module Utils =
+    /// List of contributors to thank (Fable-style).
+    let contributors = [|
+        "@dbrattli"
+        "@alfonsogarciacaro"
+        "@ncave"
+        "@MangelMaxime"
+        "@claude-code 🤖"
+    |]
+
+    /// Returns a random contributor from the list.
+    let randomContributor () : string =
+        let rnd = Random()
+        contributors.[rnd.Next(contributors.Length)]
+
+    /// Converts camelCase to snake_case for the function part.
+    let private toSnakeCase (name: string) : string =
+        if name.Length > 0 && Char.IsLower(name.[0]) then
+            System.Text.RegularExpressions.Regex.Replace(
+                name,
+                "[a-z]?[A-Z]",
+                fun m ->
+                    if m.Value.Length = 1 then
+                        m.Value.ToLowerInvariant()
+                    else
+                        m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+            )
+        else
+            name
+
+    /// Converts F# symbol reference to Python naming.
+    /// - "Module.func" -> "Module_func" (Fable keeps camelCase for module functions)
+    /// - "func" -> "func" (with snake_case conversion for top-level)
+    let toPythonNaming (name: string) : string =
+        match name.Split('.') with
+        | [| moduleName; funcName |] -> moduleName + "_" + funcName // Module functions stay camelCase
+        | _ -> toSnakeCase name // Top-level functions get snake_case
+
+    /// Parses a comma-separated list of symbols from an include-python directive.
+    let parseSymbolList (directive: string) : string list =
+        // Extract content between "(*** include-python:" and "***)"
+        let start = "(*** include-python:".Length
+        let endPos = directive.LastIndexOf("***)")
+
+        if endPos > start then
+            directive.Substring(start, endPos - start).Trim()
+            |> fun s -> s.Split(',')
+            |> Array.map (fun s -> s.Trim())
+            |> Array.filter (fun s -> s.Length > 0)
+            |> Array.toList
+        else
+            []
+
+    /// Active pattern for classifying source lines.
+    /// - `HideCmd`: The (*** hide ***) directive
+    /// - `IncludePythonCmd symbols`: The (*** include-python: sym1, sym2 ***) directive
+    /// - `MarkdownSingle content`: Single-line markdown (** content *)
+    /// - `MarkdownOpen content`: Start of markdown block, possibly with content
+    /// - `MarkdownClose`: End of markdown block *)
+    /// - `Content`: Any other line
+    let (|HideCmd|IncludePythonCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
+        let trimmed = line.Trim()
+
+        match trimmed with
+        | "(*** hide ***)" -> HideCmd
+        | s when s.StartsWith("(*** include-python:") && s.EndsWith("***)") -> IncludePythonCmd(parseSymbolList s)
+        | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
+            MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
+        | s when s.StartsWith("(**") ->
+            let content = if s.Length > 3 then s.Substring(3).Trim() else ""
+            MarkdownOpen content
+        | "*)" -> MarkdownClose
+        | _ -> Content
+
+    /// Trim empty lines from front, whitespace from end (preserving indentation).
+    let trimCode (code: string) : string =
+        code.TrimEnd().Split '\n'
+        |> Array.skipWhile String.IsNullOrWhiteSpace
+        |> String.concat "\n"
+
+open Utils
+```
+
 ### Parser Module
 
 The parser converts source lines into a Block AST using a fold:
+
+```fsharp
+module Parser =
+    /// Internal state for block accumulation during parsing.
+    type private ParserState =
+        | CollectingMarkdown of lines: string list
+        | CollectingCode of lines: string list
+        | CollectingHidden of lines: string list
+        | Ready
+
+    /// Parse context threaded through the fold.
+    type private ParseContext = {
+        State: ParserState
+        Blocks: Block list // Accumulated blocks (in reverse)
+    }
+```
+
+Parse lines into a document AST
+
+```fsharp
+    /// Parse lines into a document AST.
+    let parse (lines: string seq) : Document =
+        let initial = {
+            State = Ready
+            Blocks = []
+        }
+
+        lines
+        |> Seq.fold parseLine initial
+        |> flushState
+        |> fun ctx -> List.rev ctx.Blocks
+```
 
 ### Transform Module
 
 Pure transformations on the document AST:
 
+```fsharp
+module Transform =
+    /// Boilerplate prefixes that should be excluded from code blocks.
+    let boilerplatePrefixes = [ "module "; "namespace " ]
+
+    /// Remove Hidden blocks from the document.
+    let filterHidden (doc: Document) : Document =
+        doc
+        |> List.filter (function
+            | Hidden _ -> false
+            | _ -> true)
+
+    /// Check if code lines are empty or boilerplate-only.
+    /// Filters standalone module/namespace declarations (e.g., "module Foo" or "namespace Bar")
+    /// but keeps module definitions with bodies (e.g., "module Foo =").
+    let private isBoilerplate (lines: string list) : bool =
+        let code = lines |> String.concat "\n" |> (fun s -> s.Trim())
+
+        String.IsNullOrWhiteSpace code
+        || code.StartsWith "namespace "
+        || code.StartsWith "module " && not (code.Contains "=")
+
+    /// Remove empty or boilerplate-only code blocks.
+    let filterBoilerplate (doc: Document) : Document =
+        doc
+        |> List.filter (function
+            | FSharpCode lines when isBoilerplate lines -> false
+            | _ -> true)
+```
+
 ### MarkdownPrinter Module
 
 Renders the document AST to markdown:
 
+```fsharp
+module MarkdownPrinter =
+    /// Render a single block to markdown.
+    let private printBlock (block: Block) : string =
+        match block with
+        | Markdown content -> content + "\n"
+        | FSharpCode lines ->
+            let code = lines |> String.concat "\n" |> trimCode
+            "\n```fsharp\n" + code + "\n```\n\n"
+        | PythonCode content -> "\n```python\n" + content + "\n```\n\n"
+        | IncludePython symbols ->
+            // Unresolved - should have been transformed
+            let symbolList = String.concat ", " symbols
+            "\n<!-- include-python: " + symbolList + " (unresolved) -->\n"
+        | Hidden _ -> "" // Should have been filtered
+
+    /// Render a document to markdown string.
+    let printMarkdown (doc: Document) : string =
+        doc |> List.map printBlock |> String.concat ""
+```
+
 ### Pipeline Module
 
 Composes the phases into a complete pipeline:
+
+```fsharp
+module Pipeline =
+    /// Standard processing pipeline.
+    let standard (pythonContent: string option) (lines: string seq) : string =
+        lines
+        |> Parser.parse
+        |> Transform.filterHidden
+        |> Transform.filterBoilerplate
+        |> Transform.resolvePythonIncludes pythonContent
+        |> MarkdownPrinter.printMarkdown
+```
 
 ### Including Generated Python Code
 
@@ -2612,7 +3148,9 @@ let getPositionalArgs (args: string[]) : string[] =
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 /// Use --python-file <path> to enable include-python directives.
+#if !TESTING
 [<EntryPoint>]
+#endif
 let main (args: string[]) =
     let hasFlag flag = args |> Array.contains flag
     let pythonFilePath = getFlagValue "--python-file" args
@@ -2654,14 +3192,56 @@ dotnet fable Fable.Literate/ --lang python -o output/Fable.Literate/
 python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction.md
 ```
 
-That's it! A complete literate programming converter in under 200 lines of F#.
+That's it! A complete literate programming converter in under 200 lines of F`#`,
+compiled to Python, processing this very blog post.
+
+## Summary
+
+We've covered a lot of ground in this guide:
+
+- **Introduction**: What Fable.Python is and why it matters
+- **F`#` for Python Developers**: Bridging the conceptual gap between languages
+- **Getting Started**: Setting up your first Fable.Python project
+- **Interop**: Seamlessly calling Python libraries from F`#`
+- **Bindings**: Creating type-safe wrappers for Python code
+- **Compatibility**: Understanding what F`#` features work (and which don't)
+- **Async Programming**: Mapping F`#` async to Python's asyncio
+- **Testing**: Running F`#` code with pytest and other Python test runners
+- **Fable v5**: The latest features including the Rust core and PyPI packages
+- **Pydantic**: Building validated data models with Python's favorite library
+- **Units of Measure**: Compile-time dimensional analysis that vanishes at runtime
+- **Fable.Literate**: A self-documenting literate programming converter
 
 ### The Punchline
 
 If you're reading this, the code worked.
 
 This entire blog post - every chapter, every code example, every explanation -
-was processed by the F# code you just read, compiled to Python, and output
-as Markdown. The proof is in the reading.
+was processed by F`#` code compiled to Python, and output as Markdown.
+The proof is in the reading.
+
+### Get Involved
+
+The source code for this entire project is available on GitHub:
+
+**[github.com/cardamomcode/fable-python](https://github.com/cardamomcode/fable-python)**
+
+The repository contains:
+
+- All the chapter source files (literate F`#`)
+- The Fable.Literate converter
+- Build scripts and configuration
+- The generated blog post
+
+Found a typo? Want to improve an explanation? Have a better example?
+Pull requests are welcome! This is a living document, and contributions
+from the community make it better for everyone.
+
+### Resources
+
+- [Fable Documentation](https://fable.io/docs/)
+- [Fable.Python on GitHub](https://github.com/fable-compiler/Fable.Python/)
+- [F`#` Software Foundation](https://fsharp.org/)
+- [Fable Discord](https://discord.gg/8c3Ng9N) - The Fable community is friendly and helpful
 
 Welcome to Fable.Python. Now go build something.
