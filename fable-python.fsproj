@@ -11,16 +11,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="chapters/introduction.fs" />
-    <Compile Include="chapters/python.fs" />
-    <Compile Include="chapters/getting-started.fs" />
-    <Compile Include="chapters/interop.fs" />
-    <Compile Include="chapters/bindings.fs" />
-    <Compile Include="chapters/compatibility.fs" />
-    <Compile Include="chapters/async-programming.fs" />
-    <Compile Include="chapters/fable-v5.fs" />
-    <Compile Include="chapters/pydantic.fs" />
-    <Compile Include="chapters/units-of-measure.fs" />
+    <Compile Include="chapters/Introduction.fs" />
+    <Compile Include="chapters/Python.fs" />
+    <Compile Include="chapters/GettingStarted.fs" />
+    <Compile Include="chapters/Interop.fs" />
+    <Compile Include="chapters/Bindings.fs" />
+    <Compile Include="chapters/Compatibility.fs" />
+    <Compile Include="chapters/AsyncProgramming.fs" />
+    <Compile Include="chapters/Testing.fs" />
+    <Compile Include="chapters/FableV5.fs" />
+    <Compile Include="chapters/Pydantic.fs" />
+    <Compile Include="chapters/UnitsOfMeasure.fs" />
   </ItemGroup>
 
 </Project>

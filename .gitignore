@@ -213,3 +213,7 @@ node_modules/
 output/
 obj/
 bin/
+
+# Generated docs (except blogpost.md which is published)
+docs/*.md
+!docs/blogpost.md

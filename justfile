@@ -3,7 +3,7 @@
 
 # Chapter order for documentation generation
 # Edit this list to reorder or add chapters
-chapters := "introduction python getting-started interop bindings compatibility async-programming fable-v5 pydantic units-of-measure"
+chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure"
 
 # Default: show help
 default:
@@ -36,8 +36,8 @@ generate: build format-python
     #!/usr/bin/env bash
     mkdir -p docs
     for name in {{chapters}}; do
-        # Convert underscores in chapter name to match Python file naming
-        pyname=$(echo "$name" | tr '-' '_')
+        # Convert PascalCase to snake_case for Python file naming
+        pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
         uv run python output/Fable.Literate/app.py \
             --python-file "output/chapters/chapters/${pyname}.py" \
             "chapters/${name}.fs" > "docs/${name}.md"
@@ -57,8 +57,8 @@ blogpost: build format-python
     mkdir -p docs
     first=true
     for name in {{chapters}}; do
-        # Convert underscores in chapter name to match Python file naming
-        pyname=$(echo "$name" | tr '-' '_')
+        # Convert PascalCase to snake_case for Python file naming
+        pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
         if $first; then
             # First chapter keeps original header levels (has the title)
             uv run python output/Fable.Literate/app.py \
@@ -82,10 +82,11 @@ blogpost: build format-python
     # Fix markdown lint issues
     just lint-markdown
 
-# Generate a single chapter
+# Generate a single chapter (e.g., just generate-chapter Introduction)
 generate-chapter chapter: build format-python
     #!/usr/bin/env bash
-    pyname=$(echo "{{chapter}}" | tr '-' '_')
+    # Convert PascalCase to snake_case for Python file naming
+    pyname=$(echo "{{chapter}}" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
     uv run python output/Fable.Literate/app.py \
         --python-file "output/chapters/chapters/${pyname}.py" \
         "chapters/{{chapter}}.fs"
