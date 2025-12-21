@@ -60,19 +60,13 @@ There are several ways to execute an async workflow:
 *)
 
 let runAsyncExample () =
+    // Run synchronously (blocking) - simplest approach
+    let result = fetchDataAsync () |> Async.RunSynchronously
+
     // Start immediately (non-blocking) - Ignore discards the result
     fetchDataAsync () |> Async.Ignore |> Async.StartImmediate
 
-    // Run synchronously (blocking)
-    let result = fetchDataAsync () |> Async.RunSynchronously
-
-    // Start with explicit continuations
-    Async.StartWithContinuations(
-        fetchDataAsync (),
-        (fun result -> printfn $"Success: {result}"),
-        (fun ex -> printfn $"Error: {ex.Message}"),
-        (fun cancelled -> printfn "Cancelled")
-    )
+    result
 
 (**
 ### Combining Async Operations
@@ -350,6 +344,22 @@ let runWithTimeout () =
         | :? OperationCanceledException ->
             return None
     }
+
+(**
+### Advanced: StartWithContinuations
+
+For fine-grained control over success, error, and cancellation outcomes, use
+`Async.StartWithContinuations`. This is useful when you need different handling paths
+for each case:
+*)
+
+let runWithContinuations () =
+    Async.StartWithContinuations(
+        fetchDataAsync (),
+        (fun result -> printfn $"Success: {result}"),
+        (fun ex -> printfn $"Error: {ex.Message}"),
+        (fun _cancelled -> printfn "Cancelled")
+    )
 
 (**
 ## When to Use What

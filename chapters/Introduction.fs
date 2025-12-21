@@ -3,6 +3,9 @@ module Introduction
 (**
 # Introduction to Fable.Python
 
+> This post is part of the [F# Advent Calendar 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/).
+Thank you, Sergey Tihon, for organizing this wonderful tradition that brings the F# community together every year!
+
 Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
@@ -99,11 +102,8 @@ the `area` function.
 
 ## What's Next?
 
-In the following chapters, we'll cover:
-
-- **Getting Started** - Setting up your development environment
-- **Bindings** - Working with Python libraries from F#
-- **Compatibility** - Understanding what F# features are supported
+In the following chapters, we'll explore setting up your environment,
+working with Python libraries, and understanding F# compatibility with Fable.
 
 Let's begin.
 *)
