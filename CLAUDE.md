@@ -44,16 +44,6 @@ The converter follows a compiler-like architecture with three phases:
 | `(*** include-python: symbol ***)` | Include generated Python for symbol |
 | Regular F# code | Wrapped in ```fsharp fenced blocks |
 
-### Escaping F# in Headings
-
-Use `` F`#` `` (backticks around `#`) in markdown headings to prevent markdownlint from interpreting it as ATX closed style:
-
-```fsharp
-(**
-## F`#` Async Workflows
-*)
-```
-
 ### File Structure
 
 ```text
@@ -68,6 +58,7 @@ chapters/
 ├── Testing.fs            # Testing F# code with Python test runners
 ├── FableV5.fs            # Fable v5 features, Rust core, PyPI
 ├── Pydantic.fs           # Pydantic models, DTOs, validation
+├── FastAPI.fs            # Type-safe web APIs with FastAPI
 ├── UnitsOfMeasure.fs     # Compile-time dimensional analysis
 ├── FableLiterate.fs      # Symlink → ../Fable.Literate/App.fs
 └── Summary.fs            # Wrap-up, resources, repo link

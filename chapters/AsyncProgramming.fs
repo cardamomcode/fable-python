@@ -7,7 +7,7 @@ Asynchronous programming is essential for modern applications - from web APIs to
 processing pipelines. F# offers two models for async code: `async` workflows and `task`
 expressions. Understanding when to use each is key to effective Fable.Python development.
 
-## Comparing Python and F`#` Async Models
+## Comparing Python and F# Async Models
 
 Python's async model is built on `asyncio`. Python coroutines are **cold** - calling an
 `async def` function returns a coroutine object that doesn't execute until awaited:
@@ -110,7 +110,7 @@ let catchExample () =
     }
 
 (**
-## F`#` Tasks
+## F# Tasks
 
 The `task` computation expression in .NET creates *hot* tasks that start immediately.
 However, when compiled to Python via Fable, tasks become Python coroutines - which are

@@ -47,7 +47,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased to `T \| None`      |
+| `Option<T>`       | `Optional[T]` (*)          |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |
@@ -55,6 +55,8 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 | `ResizeArray<T>`  | `list`                     |
 | Record types      | `@dataclass`               |
 | Anonymous Records | `dict`                     |
+
+(*) Generated as `T | None` in Python 3.12+
 
 ## Interfaces and Protocols
 

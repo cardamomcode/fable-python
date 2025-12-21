@@ -178,17 +178,19 @@ This pattern is useful when you want to:
 
 F# types map naturally to Python/Pydantic types:
 
-|   F# Type   | Python Type  |             Notes              |
-| ----------- | ------------ | ------------------------------ |
-| `string`    | `str`        |                                |
-| `int`       | `int`        |                                |
-| `float`     | `float`      |                                |
-| `bool`      | `bool`       |                                |
-| `'T option` | `T \| None`  | Modern union syntax            |
-| `'T list`   | `list[T]`    |                                |
-| `'T array`  | `list[T]`    |                                |
-| Record      | `class`      | With `@dataclass` or BaseModel |
-| DU          | Tagged class | See below                      |
+|   F# Type   |    Python Type    |             Notes              |
+| ----------- | ----------------- | ------------------------------ |
+| `string`    | `str`             |                                |
+| `int`       | `int`             |                                |
+| `float`     | `float`           |                                |
+| `bool`      | `bool`            |                                |
+| `'T option` | `Optional[T]` (*) | Modern union syntax            |
+| `'T list`   | `list[T]`         |                                |
+| `'T array`  | `list[T]`         |                                |
+| Record      | `class`           | With `@dataclass` or BaseModel |
+| DU          | Tagged class      | See below                      |
+
+(*) Generated as `T | None` in Python 3.12+
 
 ### F# Option to Python Union
 
