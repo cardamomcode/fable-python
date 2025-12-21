@@ -3,7 +3,7 @@
 
 # Chapter order for documentation generation
 # Edit this list to reorder or add chapters
-chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure"
+chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure FableLiterate Summary"
 
 # Default: show help
 default:
@@ -38,16 +38,17 @@ generate: build format-python
     for name in {{chapters}}; do
         # Convert PascalCase to snake_case for Python file naming
         pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
+        # FableLiterate uses different python output path (symlink to Fable.Literate/App.fs)
+        if [ "$name" = "FableLiterate" ]; then
+            pyfile="output/Fable.Literate/python.py"
+        else
+            pyfile="output/chapters/chapters/${pyname}.py"
+        fi
         uv run python output/Fable.Literate/app.py \
-            --python-file "output/chapters/chapters/${pyname}.py" \
+            --python-file "$pyfile" \
             "chapters/${name}.fs" > "docs/${name}.md"
         echo "Generated docs/${name}.md"
     done
-    # Also generate Fable.Literate documentation
-    uv run python output/Fable.Literate/app.py \
-        --python-file "output/Fable.Literate/python.py" \
-        Fable.Literate/App.fs > docs/fable-literate.md
-    echo "Generated docs/fable-literate.md"
     # Fix markdown lint issues
     just lint-markdown
 
@@ -59,25 +60,26 @@ blogpost: build format-python
     for name in {{chapters}}; do
         # Convert PascalCase to snake_case for Python file naming
         pyname=$(echo "$name" | sed 's/\([A-Z]\)/_\1/g' | sed 's/^_//' | tr '[:upper:]' '[:lower:]')
+        # FableLiterate uses different python output path (symlink to Fable.Literate/App.fs)
+        if [ "$name" = "FableLiterate" ]; then
+            pyfile="output/Fable.Literate/python.py"
+        else
+            pyfile="output/chapters/chapters/${pyname}.py"
+        fi
         if $first; then
             # First chapter keeps original header levels (has the title)
             uv run python output/Fable.Literate/app.py \
-                --python-file "output/chapters/chapters/${pyname}.py" \
+                --python-file "$pyfile" \
                 "chapters/${name}.fs" > docs/blogpost.md
             first=false
         else
             # Remaining chapters get headers increased by one level
             echo "" >> docs/blogpost.md
             uv run python output/Fable.Literate/app.py \
-                --python-file "output/chapters/chapters/${pyname}.py" \
+                --python-file "$pyfile" \
                 --increase-headers "chapters/${name}.fs" >> docs/blogpost.md
         fi
     done
-    # Include Fable.Literate documenting itself (the meta twist!)
-    echo "" >> docs/blogpost.md
-    uv run python output/Fable.Literate/app.py \
-        --python-file "output/Fable.Literate/python.py" \
-        --increase-headers Fable.Literate/App.fs >> docs/blogpost.md
     echo "Generated docs/blogpost.md"
     # Fix markdown lint issues
     just lint-markdown

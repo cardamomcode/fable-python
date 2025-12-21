@@ -464,15 +464,6 @@ dotnet fable Fable.Literate/ --lang python -o output/Fable.Literate/
 python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction.md
 ```
 
-That's it! A complete literate programming converter in under 200 lines of F#.
-
-## The Punchline
-
-If you're reading this, the code worked.
-
-This entire blog post - every chapter, every code example, every explanation -
-was processed by the F# code you just read, compiled to Python, and output
-as Markdown. The proof is in the reading.
-
-Welcome to Fable.Python. Now go build something.
+That's it! A complete literate programming converter in under 200 lines of F`#`,
+compiled to Python, processing this very blog post.
 *)

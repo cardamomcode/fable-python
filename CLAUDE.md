@@ -58,16 +58,19 @@ Use `` F`#` `` (backticks around `#`) in markdown headings to prevent markdownli
 
 ```text
 chapters/
-├── introduction.fs       # What is Fable.Python, why use it
-├── python.fs             # F# concepts for Python developers
-├── getting-started.fs    # Setup, first project, hello world
-├── interop.fs            # Using existing Python libraries
-├── bindings.fs           # Creating Python bindings
-├── compatibility.fs      # F# features supported, limitations
-├── async-programming.fs  # async vs task, Python asyncio mapping
-├── fable-v5.fs           # Fable v5 features, Rust core, PyPI
-├── pydantic.fs           # Pydantic models, DTOs, validation
-└── units-of-measure.fs   # Compile-time dimensional analysis
+├── Introduction.fs       # What is Fable.Python, why use it
+├── Python.fs             # F# concepts for Python developers
+├── GettingStarted.fs     # Setup, first project, hello world
+├── Interop.fs            # Using existing Python libraries
+├── Bindings.fs           # Creating Python bindings
+├── Compatibility.fs      # F# features supported, limitations
+├── AsyncProgramming.fs   # async vs task, Python asyncio mapping
+├── Testing.fs            # Testing F# code with Python test runners
+├── FableV5.fs            # Fable v5 features, Rust core, PyPI
+├── Pydantic.fs           # Pydantic models, DTOs, validation
+├── UnitsOfMeasure.fs     # Compile-time dimensional analysis
+├── FableLiterate.fs      # Symlink → ../Fable.Literate/App.fs
+└── Summary.fs            # Wrap-up, resources, repo link
 Fable.Literate/
 ├── App.fs                # Fable.Literate converter source (F#)
 └── Fable.Literate.fsproj
