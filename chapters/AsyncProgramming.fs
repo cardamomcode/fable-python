@@ -32,7 +32,7 @@ F# provides two computation expressions that compile to Python's async model:
 - **`async { }`** - F#'s original async workflows (cold, composable, multi-target)
 - **`task { }`** - .NET-style tasks (hot in .NET, compiles to native `async def` in Python)
 
-## F`#` Async Workflows
+## F# Async Workflows
 
 The `async` computation expression has been part of F# since the beginning. It creates
 *cold* async operations - they don't start until explicitly run.

@@ -10,6 +10,24 @@ this wonderful tradition that brings the F# community together every year!
 Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
+## Table of Contents
+
+1. [F# for Python Developers](#heading-are-you-a-python-developer) - Core concepts if you're coming from Python
+2. [Getting Started](#heading-getting-started-with-fablepython) - Installation and your first project
+3. [Python Interop](#heading-python-interop) - Calling Python libraries from F#
+4. [Creating Bindings](#heading-creating-python-bindings) - Type-safe wrappers for Python packages
+5. [F# Compatibility](#heading-f-compatibility-in-fablepython) - What works, what doesn't
+6. [Async Programming](#heading-async-programming) - F# async and Python asyncio
+7. [Testing](#heading-testing-fablepython-projects) - Using pytest with F# code
+8. [Fable v5](#heading-fable-v5-whats-new) - New features and the Rust core
+9. [Pydantic Integration](#heading-pydantic-interop) - Type-safe data validation
+10. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
+11. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
+
+**A teaser:** the final chapter reveals how this entire blog post was generated. The converter that transforms F#
+literate files into Markdown is itself written in F#, compiled to Python with Fable, and documented using its own
+output format. It's turtles all the way down.
+
 ## What is Fable?
 
 [Fable](https://fable.io/) is a compiler that brings F# to different platforms and ecosystems. While
@@ -100,7 +118,5 @@ shape variant, the compiler will warn you about unhandled cases in the `area` fu
 ## What's Next?
 
 In the following chapters, we'll explore setting up your environment, working with Python libraries, and understanding
-F# compatibility with Fable.
-
-Let's begin.
+F# compatibility with Fable. Let's begin.
 *)

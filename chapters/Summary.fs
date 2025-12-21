@@ -7,13 +7,13 @@ module Summary
 We've covered a lot of ground in this guide:
 
 - **Introduction**: What Fable.Python is and why it matters
-- **F`#` for Python Developers**: Bridging the conceptual gap between languages
+- **F# for Python Developers**: Bridging the conceptual gap between languages
 - **Getting Started**: Setting up your first Fable.Python project
-- **Interop**: Seamlessly calling Python libraries from F`#`
+- **Interop**: Seamlessly calling Python libraries from F#
 - **Bindings**: Creating type-safe wrappers for Python code
-- **Compatibility**: Understanding what F`#` features work (and which don't)
-- **Async Programming**: Mapping F`#` async to Python's asyncio
-- **Testing**: Running F`#` code with pytest and other Python test runners
+- **Compatibility**: Understanding what F# features work (and which don't)
+- **Async Programming**: Mapping F# async to Python's asyncio
+- **Testing**: Running F# code with pytest and other Python test runners
 - **Fable v5**: The latest features including the Rust core and PyPI packages
 - **Pydantic**: Building validated data models with Python's favorite library
 - **Units of Measure**: Compile-time dimensional analysis that vanishes at runtime
@@ -24,7 +24,7 @@ We've covered a lot of ground in this guide:
 If you're reading this, the code worked.
 
 This entire blog post - every chapter, every code example, every explanation -
-was processed by F`#` code compiled to Python, and output as Markdown.
+was processed by F# code compiled to Python, and output as Markdown.
 The proof is in the reading.
 
 ## Get Involved
@@ -34,7 +34,7 @@ The source code for this entire project is available on GitHub:
 **[github.com/cardamomcode/fable-python](https://github.com/cardamomcode/fable-python)**
 
 The repository contains:
-- All the chapter source files (literate F`#`)
+- All the chapter source files (literate F#)
 - The Fable.Literate converter
 - Build scripts and configuration
 - The generated blog post
@@ -47,8 +47,7 @@ from the community make it better for everyone.
 
 - [Fable Documentation](https://fable.io/docs/)
 - [Fable.Python on GitHub](https://github.com/fable-compiler/Fable.Python/)
-- [F`#` Software Foundation](https://fsharp.org/)
-- [Fable Discord](https://discord.gg/8c3Ng9N) - The Fable community is friendly and helpful
+- [F# Software Foundation](https://fsharp.org/)
 
 Welcome to Fable.Python. Now go build something.
 *)

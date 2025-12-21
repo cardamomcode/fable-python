@@ -37,7 +37,7 @@ dotnet add package Fable.Core --version 5.0.0-beta.4
 Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
-pip install "fable-library==5.0.0a20"
+pip install "fable-library==5.0.0a21"
 ```
 
 ---
