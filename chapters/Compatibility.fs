@@ -47,7 +47,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased to `T \| None`      |
+| `Option<T>`       | `T \| None` (erased)       |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |

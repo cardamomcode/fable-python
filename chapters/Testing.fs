@@ -119,7 +119,7 @@ same API to Fable, supporting JavaScript, Python, and .NET.
 
 - **Composable**: Tests are values you can combine and transform
 - **No magic**: No reflection, no attributes - just functions
-- **Familiar F# idioms**: Uses computation expressions and pipelines
+- **Familiar F# idioms**: Uses lists and pipelines
 
 ### Setting Up Pyxpecto
 

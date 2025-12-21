@@ -102,7 +102,7 @@ dotnet tool install fable --version 5.0.0-alpha.21
 dotnet add package Fable.Core --version 5.0.0-beta.4
 
 # Install the Python runtime
-uv add fable-library==5.0.0a17
+uv add fable-library==5.0.0a21
 ```
 
 Then compile your F# to Python:

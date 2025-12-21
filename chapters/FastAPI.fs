@@ -56,11 +56,11 @@ let app = FastAPI(title = "My API", version = "1.0.0")
 
 (**
 This generates:
+*)
 
-```python
-app = FastAPI(title="My API", version="1.0.0")
-```
+(*** include-python: app ***)
 
+(**
 The `app` variable name is important - the route decorators reference it.
 
 ## Defining Models
