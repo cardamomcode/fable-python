@@ -19,6 +19,7 @@
         "nativeint",
         "ncave",
         "pathlib",
+        "pyfile",
         "pyname",
         "Pyxpecto",
         "stroustrup",

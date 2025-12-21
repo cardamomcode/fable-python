@@ -16,8 +16,9 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 8. **Libraries** - Existing ecosystem (Thoth.Json, AsyncRx, Siren, etc.) *(coming soon)*
 9. **Pydantic** - Pydantic interop with Decorate and ClassAttributes
 10. **Units of Measure** - Compile-time dimensional analysis
-11. **Testing** - XUnit and Fable.Pyxpecto *(coming soon)*
-12. **Fabletext: The Strange Loop** - The self-documenting finale
+11. **Testing** - Testing F# code with Python test runners
+12. **Fable.Literate** - The self-documenting converter
+13. **Summary** - Wrap-up, resources, and contributing
 
 ## The Strange Loop
 
@@ -74,7 +75,9 @@ chapters/
 ├── Testing.fs            # Testing with Python
 ├── FableV5.fs            # What's new in Fable v5
 ├── Pydantic.fs           # Pydantic interop
-└── UnitsOfMeasure.fs     # Dimensional analysis
+├── UnitsOfMeasure.fs     # Dimensional analysis
+├── FableLiterate.fs      # Symlink → ../Fable.Literate/App.fs
+└── Summary.fs            # Wrap-up and resources
 Fable.Literate/
 ├── App.fs                # Fable.Literate converter (F#)
 └── Fable.Literate.fsproj
@@ -94,7 +97,7 @@ docs/
 Defined in `justfile`:
 
 ```just
-chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure"
+chapters := "Introduction Python GettingStarted Interop Bindings Compatibility AsyncProgramming Testing FableV5 Pydantic UnitsOfMeasure FableLiterate Summary"
 ```
 
 To add a new chapter, just add the file and update this list.
