@@ -3,8 +3,7 @@ module GettingStarted
 (**
 # Getting Started with Fable.Python
 
-Let's set up a Fable.Python project from scratch and get our first F# code
-running as Python.
+Let's set up a Fable.Python project from scratch and get our first F# code running as Python.
 
 ## Prerequisites
 
@@ -27,7 +26,7 @@ dotnet new console -lang F#
 
 # Set up local tools and install Fable 5 (alpha)
 dotnet new tool-manifest
-dotnet tool install fable --version 5.0.0-alpha.20
+dotnet tool install fable --version 5.0.0-alpha.21
 
 # Add Fable.Core package
 dotnet add package Fable.Core --version 5.0.0-beta.4
@@ -44,7 +43,7 @@ pip install "fable-library==5.0.0a20"
 ---
 
 **Note:** Version pinning matters. The fable-library version must match
-your Fable compiler version. PyPI uses `5.0.0a20` format instead of `5.0.0-alpha.20`.
+your Fable compiler version. PyPI uses `5.0.0a21` format instead of `5.0.0-alpha.21`.
 
 ---
 
@@ -76,10 +75,10 @@ Transpile to Python:
 dotnet fable --lang python
 ```
 
-This creates `Program.py` in your project directory. Run it:
+This creates `program.py` in your project directory. Run it:
 
 ```bash
-python3 Program.py
+python3 program.py
 ```
 
 You should see:
@@ -106,7 +105,7 @@ After setup, your project looks like this:
 ```text
 my-fable-python/
 ├── Program.fs          # Your F# source code
-├── Program.py          # Generated Python (don't edit!)
+├── program.py          # Generated Python (don't edit!)
 ├── my-fable-python.fsproj
 ├── fable_modules/      # Fable runtime modules
 └── .config/

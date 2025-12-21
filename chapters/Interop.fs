@@ -214,6 +214,30 @@ let factorial (count: int) : int =
 """
 
 (**
+### Py.python for Literal Python Code
+
+`Py.python` provides a cleaner way to embed literal Python code without
+parameter placeholders. The code is printed as statements, so use Python's
+`return` keyword if you need to return a value:
+*)
+
+open Fable.Python
+
+let greet (name: string) : string =
+    Py.python
+        $"""
+    greeting = f"Hello, {{name}}!"
+    return greeting
+"""
+
+(** This generates: *)
+(*** include-python: greet ***)
+
+(**
+This is useful when you want to write a block of Python code directly,
+especially when it doesn't need parameter substitution (you can use F#
+string interpolation instead).
+
 ## StringEnum: Type-Safe String Constants
 
 `StringEnum` creates discriminated unions that compile to Python strings:

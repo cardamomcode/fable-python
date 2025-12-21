@@ -76,11 +76,7 @@ F# async shines when composing multiple operations:
 
 let fetchMultipleAsync () =
     async {
-        let! results =
-            [ fetchDataAsync ()
-              fetchDataAsync ()
-              fetchDataAsync () ]
-            |> Async.Parallel
+        let! results = [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ] |> Async.Parallel
 
         return results |> Array.toList
     }
@@ -182,8 +178,10 @@ let taskExample () =
 let taskWithLoop () =
     task {
         let mutable sum = 0
+
         for i in 1..10 do
             sum <- sum + i
+
         return sum
     }
 
@@ -279,16 +277,13 @@ Here's a pattern for async HTTP operations (assuming you have bindings for `aioh
 // Simulated async HTTP - in real code you'd use aiohttp bindings
 let fetchUrlAsync (url: string) =
     async {
-        do! Async.Sleep 100  // Simulates network delay
+        do! Async.Sleep 100 // Simulates network delay
         return $"Response from {url}"
     }
 
 let fetchMultipleUrls (urls: string list) =
     async {
-        let! responses =
-            urls
-            |> List.map fetchUrlAsync
-            |> Async.Parallel
+        let! responses = urls |> List.map fetchUrlAsync |> Async.Parallel
 
         return responses |> Array.toList
     }
@@ -302,18 +297,17 @@ Choose based on whether operations are independent:
 let sequentialProcessing items =
     async {
         let results = ResizeArray()
+
         for item in items do
             let! result = fetchUrlAsync item
             results.Add(result)
+
         return results |> Seq.toList
     }
 
 let parallelProcessing items =
     async {
-        let! results =
-            items
-            |> List.map fetchUrlAsync
-            |> Async.Parallel
+        let! results = items |> List.map fetchUrlAsync |> Async.Parallel
         return results |> Array.toList
     }
 
@@ -331,17 +325,18 @@ let cancellableWork (token: CancellationToken) =
             token.ThrowIfCancellationRequested()
             do! Async.Sleep 50
             printfn $"Step {i}"
+
         return "Completed"
     }
 
 let runWithTimeout () =
     async {
-        use cts = new CancellationTokenSource(2000)  // 2 second timeout
+        use cts = new CancellationTokenSource(2000) // 2 second timeout
+
         try
             let! result = cancellableWork cts.Token
             return Some result
-        with
-        | :? OperationCanceledException ->
+        with :? OperationCanceledException ->
             return None
     }
 
@@ -373,7 +368,11 @@ When working with Python frameworks that expect native async functions:
 let getItemTask (itemId: int) =
     task {
         do! Task.Delay 10
-        return {| id = itemId; name = "Widget" |}
+
+        return {|
+            id = itemId
+            name = "Widget"
+        |}
     }
 
 (**
@@ -399,11 +398,7 @@ When you need rich composition primitives:
 let complexWorkflow () =
     async {
         // Run three operations in parallel
-        let! results =
-            [ fetchDataAsync ()
-              fetchDataAsync ()
-              fetchDataAsync () ]
-            |> Async.Parallel
+        let! results = [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ] |> Async.Parallel
 
         // Then do something sequential
         do! Async.Sleep 100

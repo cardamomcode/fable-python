@@ -3,18 +3,16 @@ module ForPythonDevelopers
 (**
 # Are You a Python Developer?
 
-If you're coming from Python, welcome. This chapter will help you understand
-the F# code you'll see throughout this guide. F# is more approachable than
-it might appear, and many concepts are familiar.
+If you're coming from Python, welcome. This chapter will help you understand the F# code you'll see throughout this
+guide. F# is more approachable than it might appear, and many concepts are familiar.
 
 ## What is F#?
 
-F# is a functional-first language that runs on .NET. But here's the key insight
-for you: **with Fable.Python, .NET is just a build tool**. You write F#, it
-compiles to Python, and you run Python. Your deployment is pure Python.
+F# is a functional-first language that runs on .NET. But here's the key insight for you: **with Fable.Python, .NET is
+just a build tool**. You write F#, it compiles to Python, and you run Python. Your deployment is pure Python.
 
-Think of it like TypeScript for JavaScript - you get better tooling and type
-safety during development, but the output is the language you know.
+Think of it like TypeScript for JavaScript - you get better tooling and type safety during development, but the output
+is the language you know.
 
 ## Key Concepts You'll See
 

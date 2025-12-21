@@ -3,16 +3,17 @@ module Introduction
 (**
 # Introduction to Fable.Python
 
-> This post is part of the [F# Advent Calendar 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/).
-Thank you, Sergey Tihon, for organizing this wonderful tradition that brings the F# community together every year!
+> This post is part of the [F# Advent Calendar
+2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
+this wonderful tradition that brings the F# community together every year!
 
 Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
 ## What is Fable?
 
-[Fable](https://fable.io/) is a compiler that brings F# to different platforms. While
-Fable is best known for compiling F# to JavaScript, it also supports other targets
+[Fable](https://fable.io/) is a compiler that brings F# to different platforms and ecosystems. While
+Fable is best known for compiling F# to TypeScript and JavaScript, it also supports other targets
 including Python, Rust, and Dart.
 
 ## Why Fable.Python?
@@ -26,9 +27,9 @@ F# is a functional-first language with powerful features like:
 
 With Fable.Python, you get all these benefits while targeting the Python ecosystem.
 
-Python is the [most popular programming language](https://www.tiobe.com/tiobe-index/)
-in the world. And no matter what you think of Python, it will always be the second
-best language for everything. That ubiquity is exactly why Fable.Python exists.
+Python is currently [the most popular programming language in the world](https://www.tiobe.com/tiobe-index/). And no
+matter what you think of Python, it will always be the second best language for everything. That ubiquity is exactly why
+Fable.Python exists.
 
 ## When to Use Fable.Python
 
@@ -68,12 +69,10 @@ When compiled with Fable, this generates the following Python:
 (*** include-python: greet, message ***)
 
 (**
-The `name: Any | None = None` signature may look odd at first. This happens because
-F# infers the type from usage - since we only call `greet` with a string, the compiler
-doesn't know if it might also be called with unit `()` (no argument). If it were,
-Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an
-explicit type annotation `let greet (name: string) = ...` would generate a cleaner
-`name: str` parameter.
+The `name: Any | None = None` signature may look odd at first. This happens because F# infers the type from usage -
+since we only call `greet` with a string, the compiler doesn't know if it might also be called with unit `()` (no
+argument). If it were, Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an explicit type
+annotation `let greet (name: string) = ...` would generate a cleaner `name: str` parameter.
 
 ## The Power of Types
 
@@ -94,16 +93,14 @@ let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 let totalArea = shapes |> List.sumBy area
 
 (**
-This compiles to Python while preserving the semantic meaning. The `Shape` type
-becomes a tagged class structure, and the `match` expression becomes clean
-conditional logic. The compiler ensures you handle all cases - if you add a
-new shape variant, the compiler will warn you about unhandled cases in
-the `area` function.
+This compiles to Python while preserving the semantic meaning. The `Shape` type becomes a tagged class structure, and
+the `match` expression becomes clean conditional logic. The compiler ensures you handle all cases, i.e if you add a new
+shape variant, the compiler will warn you about unhandled cases in the `area` function.
 
 ## What's Next?
 
-In the following chapters, we'll explore setting up your environment,
-working with Python libraries, and understanding F# compatibility with Fable.
+In the following chapters, we'll explore setting up your environment, working with Python libraries, and understanding
+F# compatibility with Fable.
 
 Let's begin.
 *)

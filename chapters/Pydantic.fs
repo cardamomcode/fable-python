@@ -98,16 +98,13 @@ type Product() =
     member val Name: string = "" with get, set
 
     // Field with description
-    member val Description: Field<string> =
-        Field.Description "Product description" with get, set
+    member val Description: Field<string> = Field.Description "Product description" with get, set
 
     // Field with numeric constraints
-    member val Price: Field<float> =
-        Field.Ge 0.0 with get, set  // price >= 0
+    member val Price: Field<float> = Field.Ge 0.0 with get, set // price >= 0
 
     // Field with string constraints
-    member val Sku: Field<string> =
-        Field.Pattern "^[A-Z]{2}-[0-9]{4}$" with get, set  // e.g., "AB-1234"
+    member val Sku: Field<string> = Field.Pattern "^[A-Z]{2}-[0-9]{4}$" with get, set // e.g., "AB-1234"
 
 (**
 Available field constraints:
@@ -165,6 +162,7 @@ let customer = Customer.create 1 "Alice" (Some "alice@example.com")
 
 let showCustomer (c: Customer) =
     printfn "Customer %d: %s" c.id c.name
+
     match c.email with
     | Some email -> printfn "  Email: %s" email
     | None -> printfn "  No email on file"
@@ -210,10 +208,10 @@ let serializationExample () =
     user.Email <- Some "alice@example.com"
 
     // Convert to dictionary
-    let dict = user.model_dump()
+    let dict = user.model_dump ()
 
     // Convert to JSON string
-    let json = user.model_dump_json()
+    let json = user.model_dump_json ()
 
     // Pretty-printed JSON
     let prettyJson = user.model_dump_json_indented 2
@@ -254,12 +252,15 @@ This distinction is important for well-architected applications:
 /// Domain model - uses precise F# types
 type UserId = UserId of System.Guid
 
-type Money = { Amount: decimal; Currency: string }
+type Money = {
+    Amount: decimal
+    Currency: string
+}
 
 type DomainUser = {
     Id: UserId
     Name: string
-    Age: int32           // Bounded, wrapping arithmetic
+    Age: int32 // Bounded, wrapping arithmetic
     Balance: Money
 }
 
@@ -282,7 +283,11 @@ Explicit transformation between domain and DTO:
 module UserMapping =
     let toDTO (user: DomainUser) : UserDTO =
         let dto = UserDTO()
-        dto.Id <- match user.Id with UserId guid -> string guid
+
+        dto.Id <-
+            match user.Id with
+            | UserId guid -> string guid
+
         dto.Name <- user.Name
         dto.Age <- int user.Age
         dto.BalanceAmount <- float user.Balance.Amount
@@ -292,7 +297,7 @@ module UserMapping =
     let fromDTO (dto: UserDTO) : Result<DomainUser, string> =
         try
             Ok {
-                Id = UserId (System.Guid.Parse dto.Id)
+                Id = UserId(System.Guid.Parse dto.Id)
                 Name = dto.Name
                 Age = int32 dto.Age
                 Balance = {
