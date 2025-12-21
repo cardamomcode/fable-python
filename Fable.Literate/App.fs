@@ -23,7 +23,7 @@ Fable.Python isn't just a toy: you're looking at a real project that works.
 
 ## How It Works
 
-The converter follows a compiler-like architecture with three phases:
+The converter follows a compiler-like architecture with three phases (just like Fable itself):
 
 1. **Parse**: Convert source lines into a Block AST
 2. **Transform**: Filter hidden blocks, resolve Python includes

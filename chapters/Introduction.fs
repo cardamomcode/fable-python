@@ -77,7 +77,7 @@ Fable.Python is a great choice when:
 Let's start with F# code that compiles to Python:
 *)
 
-let greet name = $"Hello, {name}!"
+let greet (name: string) = $"Hello, {name}!"
 
 let message = greet "Fable.Python"
 
@@ -88,10 +88,9 @@ When compiled with Fable, this generates the following Python:
 (*** include-python: greet, message ***)
 
 (**
-The `name: Any | None = None` signature may look odd at first. This happens because F# infers the type from usage -
-since we only call `greet` with a string, the compiler doesn't know if it might also be called with unit `()` (no
-argument). If it were, Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an explicit type
-annotation `let greet (name: string) = ...` would generate a cleaner `name: str` parameter.
+Notice how the explicit type annotation `(name: string)` generates clean Python with `name: str`.
+Without it, F# infers from usage and Fable generates `name: Any | None = None` to handle cases
+where the function might be called with no argument. Type annotations give you cleaner output.
 
 ## The Power of Types
 
