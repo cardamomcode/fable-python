@@ -12,6 +12,7 @@
         "Hashnode",
         "pathlib",
         "pyname",
+        "Pyxpecto",
         "stroustrup"
     ]
 }

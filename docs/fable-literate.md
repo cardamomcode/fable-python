@@ -63,21 +63,200 @@ type Document = Block list
 
 Utility functions for naming conversion and line classification:
 
+```fsharp
+module Utils =
+    /// List of contributors to thank (Fable-style).
+    let contributors = [|
+        "@dbrattli"
+        "@alfonsogarciacaro"
+        "@ncave"
+        "@MangelMaxime"
+        "@claude-code 🤖"
+    |]
+
+    /// Returns a random contributor from the list.
+    let randomContributor () : string =
+        let rnd = Random()
+        contributors.[rnd.Next(contributors.Length)]
+
+    /// Converts camelCase to snake_case for the function part.
+    let private toSnakeCase (name: string) : string =
+        if name.Length > 0 && Char.IsLower(name.[0]) then
+            System.Text.RegularExpressions.Regex.Replace(
+                name,
+                "[a-z]?[A-Z]",
+                fun m ->
+                    if m.Value.Length = 1 then
+                        m.Value.ToLowerInvariant()
+                    else
+                        m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+            )
+        else
+            name
+
+    /// Converts F# symbol reference to Python naming.
+    /// - "Module.func" -> "Module_func" (Fable keeps camelCase for module functions)
+    /// - "func" -> "func" (with snake_case conversion for top-level)
+    let toPythonNaming (name: string) : string =
+        match name.Split('.') with
+        | [| moduleName; funcName |] -> moduleName + "_" + funcName // Module functions stay camelCase
+        | _ -> toSnakeCase name // Top-level functions get snake_case
+
+    /// Parses a comma-separated list of symbols from an include-python directive.
+    let parseSymbolList (directive: string) : string list =
+        // Extract content between "(*** include-python:" and "***)"
+        let start = "(*** include-python:".Length
+        let endPos = directive.LastIndexOf("***)")
+
+        if endPos > start then
+            directive.Substring(start, endPos - start).Trim()
+            |> fun s -> s.Split(',')
+            |> Array.map (fun s -> s.Trim())
+            |> Array.filter (fun s -> s.Length > 0)
+            |> Array.toList
+        else
+            []
+
+    /// Active pattern for classifying source lines.
+    /// - `HideCmd`: The (*** hide ***) directive
+    /// - `IncludePythonCmd symbols`: The (*** include-python: sym1, sym2 ***) directive
+    /// - `MarkdownSingle content`: Single-line markdown (** content *)
+    /// - `MarkdownOpen content`: Start of markdown block, possibly with content
+    /// - `MarkdownClose`: End of markdown block *)
+    /// - `Content`: Any other line
+    let (|HideCmd|IncludePythonCmd|MarkdownSingle|MarkdownOpen|MarkdownClose|Content|) (line: string) =
+        let trimmed = line.Trim()
+
+        match trimmed with
+        | "(*** hide ***)" -> HideCmd
+        | s when s.StartsWith("(*** include-python:") && s.EndsWith("***)") -> IncludePythonCmd(parseSymbolList s)
+        | s when s.StartsWith("(**") && s.EndsWith("*)") && s.Length > 5 ->
+            MarkdownSingle(s.Substring(3, s.Length - 5).Trim())
+        | s when s.StartsWith("(**") ->
+            let content = if s.Length > 3 then s.Substring(3).Trim() else ""
+            MarkdownOpen content
+        | "*)" -> MarkdownClose
+        | _ -> Content
+
+open Utils
+```
+
 ## Parser Module
 
 The parser converts source lines into a Block AST using a fold:
+
+```fsharp
+module Parser =
+    /// Internal state for block accumulation during parsing.
+    type private ParserState =
+        | CollectingMarkdown of lines: string list
+        | CollectingCode of lines: string list
+        | CollectingHidden of lines: string list
+        | Ready
+
+    /// Parse context threaded through the fold.
+    type private ParseContext = {
+        State: ParserState
+        Blocks: Block list // Accumulated blocks (in reverse)
+    }
+```
+
+Parse lines into a document AST
+
+```fsharp
+    /// Parse lines into a document AST.
+    let parse (lines: string seq) : Document =
+        let initial = {
+            State = Ready
+            Blocks = []
+        }
+
+        lines
+        |> Seq.fold parseLine initial
+        |> flushState
+        |> fun ctx -> List.rev ctx.Blocks
+```
 
 ## Transform Module
 
 Pure transformations on the document AST:
 
+```fsharp
+module Transform =
+    /// Boilerplate prefixes that should be excluded from code blocks.
+    let boilerplatePrefixes = [ "module "; "namespace " ]
+
+    /// Remove Hidden blocks from the document.
+    let filterHidden (doc: Document) : Document =
+        doc
+        |> List.filter (function
+            | Hidden _ -> false
+            | _ -> true)
+
+    /// Check if code lines are empty or boilerplate-only.
+    /// Filters standalone module/namespace declarations (e.g., "module Foo" or "namespace Bar")
+    /// but keeps module definitions with bodies (e.g., "module Foo =").
+    let private isBoilerplate (lines: string list) : bool =
+        let code = lines |> String.concat "\n" |> (fun s -> s.Trim())
+
+        String.IsNullOrWhiteSpace code
+        || code.StartsWith "namespace "
+        || code.StartsWith "module " && not (code.Contains "=")
+
+    /// Remove empty or boilerplate-only code blocks.
+    let filterBoilerplate (doc: Document) : Document =
+        doc
+        |> List.filter (function
+            | FSharpCode lines when isBoilerplate lines -> false
+            | _ -> true)
+```
+
 ## MarkdownPrinter Module
 
 Renders the document AST to markdown:
 
+```fsharp
+module MarkdownPrinter =
+    /// Trim empty lines from front, whitespace from end (preserving indentation).
+    let private trimCode (code: string) : string =
+        code.TrimEnd().Split '\n'
+        |> Array.skipWhile String.IsNullOrWhiteSpace
+        |> String.concat "\n"
+
+    /// Render a single block to markdown.
+    let private printBlock (block: Block) : string =
+        match block with
+        | Markdown content -> content + "\n"
+        | FSharpCode lines ->
+            let code = lines |> String.concat "\n" |> trimCode
+            "\n```fsharp\n" + code + "\n```\n\n"
+        | PythonCode content -> "\n```python\n" + content + "\n```\n\n"
+        | IncludePython symbols ->
+            // Unresolved - should have been transformed
+            let symbolList = String.concat ", " symbols
+            "\n<!-- include-python: " + symbolList + " (unresolved) -->\n"
+        | Hidden _ -> "" // Should have been filtered
+
+    /// Render a document to markdown string.
+    let printMarkdown (doc: Document) : string =
+        doc |> List.map printBlock |> String.concat ""
+```
+
 ## Pipeline Module
 
 Composes the phases into a complete pipeline:
+
+```fsharp
+module Pipeline =
+    /// Standard processing pipeline.
+    let standard (pythonContent: string option) (lines: string seq) : string =
+        lines
+        |> Parser.parse
+        |> Transform.filterHidden
+        |> Transform.filterBoilerplate
+        |> Transform.resolvePythonIncludes pythonContent
+        |> MarkdownPrinter.printMarkdown
+```
 
 ## Including Generated Python Code
 

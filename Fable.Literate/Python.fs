@@ -52,6 +52,8 @@ let symbolPatterns (symbol: string) = [
     symbol + ": "
     "def " + symbol + "("
     "def " + symbol + "["
+    "async def " + symbol + "("
+    "async def " + symbol + "["
     "class " + symbol + "("
     "class " + symbol + ":"
     "class " + symbol + "["
@@ -79,6 +81,7 @@ let isMultilineDefinition (line: string) : bool =
 
     trimmed.StartsWith "class "
     || trimmed.StartsWith "def "
+    || trimmed.StartsWith "async def "
     || trimmed.EndsWith "("
     || trimmed.EndsWith "["
     || trimmed.EndsWith "{"

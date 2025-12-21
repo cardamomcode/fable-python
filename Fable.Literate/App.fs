@@ -39,6 +39,8 @@ The input syntax:
 *)
 
 (*** hide ***)
+module Fable.Literate.App
+
 open System
 open Fable.Core
 open Fable.Literate.Python
@@ -147,6 +149,12 @@ module Utils =
         | "*)" -> MarkdownClose
         | _ -> Content
 
+    /// Trim empty lines from front, whitespace from end (preserving indentation).
+    let trimCode (code: string) : string =
+        code.TrimEnd().Split '\n'
+        |> Array.skipWhile String.IsNullOrWhiteSpace
+        |> String.concat "\n"
+
 open Utils
 
 (**
@@ -169,6 +177,7 @@ module Parser =
         Blocks: Block list // Accumulated blocks (in reverse)
     }
 
+    (*** hide ***)
     /// Flush current state to a block if non-empty.
     let private flushState (ctx: ParseContext) : ParseContext =
         match ctx.State with
@@ -234,6 +243,8 @@ module Parser =
         | CollectingMarkdown _, (MarkdownOpen _ | MarkdownSingle _ | IncludePythonCmd _) -> ctx
         | (CollectingCode _ | Ready), MarkdownClose -> ctx
 
+    (** Parse lines into a document AST *)
+
     /// Parse lines into a document AST.
     let parse (lines: string seq) : Document =
         let initial = {
@@ -264,11 +275,14 @@ module Transform =
             | _ -> true)
 
     /// Check if code lines are empty or boilerplate-only.
+    /// Filters standalone module/namespace declarations (e.g., "module Foo" or "namespace Bar")
+    /// but keeps module definitions with bodies (e.g., "module Foo =").
     let private isBoilerplate (lines: string list) : bool =
         let code = lines |> String.concat "\n" |> (fun s -> s.Trim())
 
         String.IsNullOrWhiteSpace code
-        || boilerplatePrefixes |> List.exists (fun prefix -> code.Trim().StartsWith prefix)
+        || code.StartsWith "namespace "
+        || code.StartsWith "module " && not (code.Contains "=")
 
     /// Remove empty or boilerplate-only code blocks.
     let filterBoilerplate (doc: Document) : Document =
@@ -277,6 +291,7 @@ module Transform =
             | FSharpCode lines when isBoilerplate lines -> false
             | _ -> true)
 
+    (*** hide ***)
     /// Resolve IncludePython blocks to actual Python code blocks.
     let resolvePythonIncludes (pythonContent: string option) (doc: Document) : Document =
         doc
@@ -307,7 +322,7 @@ module MarkdownPrinter =
         match block with
         | Markdown content -> content + "\n"
         | FSharpCode lines ->
-            let code = lines |> String.concat "\n" |> (fun s -> s.Trim())
+            let code = lines |> String.concat "\n" |> trimCode
             "\n```fsharp\n" + code + "\n```\n\n"
         | PythonCode content -> "\n```python\n" + content + "\n```\n\n"
         | IncludePython symbols ->
@@ -320,6 +335,7 @@ module MarkdownPrinter =
     let printMarkdown (doc: Document) : string =
         doc |> List.map printBlock |> String.concat ""
 
+    (*** hide ***)
     /// Increases all markdown header levels by one (# becomes ##, etc.).
     /// Preserves headers inside fenced code blocks.
     let adjustHeaderLevels (markdown: string) : string =
@@ -404,7 +420,9 @@ let getPositionalArgs (args: string[]) : string[] =
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 /// Use --python-file <path> to enable include-python directives.
+#if !TESTING
 [<EntryPoint>]
+#endif
 let main (args: string[]) =
     let hasFlag flag = args |> Array.contains flag
     let pythonFilePath = getFlagValue "--python-file" args

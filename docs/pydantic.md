@@ -271,6 +271,32 @@ type UserDTO() =
 
 Explicit transformation between domain and DTO:
 
+```fsharp
+module UserMapping =
+    let toDTO (user: DomainUser) : UserDTO =
+        let dto = UserDTO()
+        dto.Id <- match user.Id with UserId guid -> string guid
+        dto.Name <- user.Name
+        dto.Age <- int user.Age
+        dto.BalanceAmount <- float user.Balance.Amount
+        dto.BalanceCurrency <- user.Balance.Currency
+        dto
+
+    let fromDTO (dto: UserDTO) : Result<DomainUser, string> =
+        try
+            Ok {
+                Id = UserId (System.Guid.Parse dto.Id)
+                Name = dto.Name
+                Age = int32 dto.Age
+                Balance = {
+                    Amount = decimal dto.BalanceAmount
+                    Currency = dto.BalanceCurrency
+                }
+            }
+        with ex ->
+            Error ex.Message
+```
+
 ### Why This Pattern?
 
 The "boilerplate" of separate DTO types is actually valuable:

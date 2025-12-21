@@ -123,6 +123,21 @@ lint-markdown:
 # TODO: Re-enable lint-python once Fable code generation issues are fixed
 lint: lint-markdown
 
+# Run tests (.NET)
+test:
+    dotnet run --project Fable.Literate.Tests/Fable.Literate.Tests.fsproj
+
+# Build tests to Python
+build-tests:
+    dotnet fable Fable.Literate.Tests/ --lang python --outDir output/Fable.Literate.Tests/
+
+# Run tests (Python)
+test-python: build-tests
+    uv run python output/Fable.Literate.Tests/program.py
+
+# Run all tests (.NET and Python)
+test-all: test test-python
+
 # Full build: restore, build, generate docs, format, lint
 all: restore build generate format lint
     @echo "Build complete!"

@@ -138,7 +138,22 @@ let processItemTask (item: string) =
 ```
 
 This generates:
-<!-- include-python: processItemTask (not found) -->
+
+```python
+async def process_item_task(item: str) -> str:
+    builder_0040: Any = task()
+
+    def _arrow49(
+        __unit: None = None, item: Any = item
+    ) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow48(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            return builder_0040.Return(item.upper())
+
+        return builder_0040.Bind(delay(int32(100)), _arrow48)
+
+    return await builder_0040.Run(builder_0040.Delay(_arrow49))
+```
+
 Now frameworks like FastAPI can detect and handle these as proper async endpoints.
 
 ### Task vs Async: Key Differences
@@ -231,7 +246,20 @@ let simpleTask () =
 ```
 
 In Python, this generates:
-<!-- include-python: simpleTask (not found) -->
+
+```python
+async def simple_task(__unit: None = None) -> int32:
+    builder_0040: Any = task()
+
+    def _arrow60(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow59(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            return builder_0040.Return(int32(42))
+
+        return builder_0040.Bind(delay(int32(500)), _arrow59)
+
+    return await builder_0040.Run(builder_0040.Delay(_arrow60))
+```
+
 ### Running Tasks from F`#`
 
 To run a task and get its result in F#:
