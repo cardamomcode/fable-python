@@ -1,15 +1,37 @@
 # Introduction to Fable.Python
 
-> This post is part of the [F# Advent Calendar 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/).
-Thank you, Sergey Tihon, for organizing this wonderful tradition that brings the F# community together every year!
+*Generated on 2025-12-22 13:26 UTC using Fable v5.0.0-alpha.21*
 
-Welcome to this guide on [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
+> This post is part of the [F# Advent Calendar
+2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
+this wonderful tradition that brings the F# community together every year!
+
+This guide covers [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
+
+## Table of Contents
+
+1. [F# for Python Developers](#heading-are-you-a-python-developer) - Core concepts if you're coming from Python
+2. [Getting Started](#heading-getting-started-with-fablepython) - Installation and your first project
+3. [Python Interop](#heading-python-interop) - Calling Python libraries from F#
+4. [Creating Bindings](#heading-creating-python-bindings) - Type-safe wrappers for Python packages
+5. [F# Compatibility](#heading-f-compatibility-in-fablepython) - What works, what doesn't
+6. [Async Programming](#heading-async-programming) - F# async and Python asyncio
+7. [Testing](#heading-testing-fablepython-projects) - Using pytest with F# code
+8. [Fable v5](#heading-fable-v5-whats-new) - New features and the Rust core
+9. [Pydantic Integration](#heading-pydantic-interop) - Type-safe data validation
+10. [FastAPI](#heading-fastapi) - Building type-safe web APIs in the Python ecosystem
+11. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
+12. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
+
+**A teaser:** the final chapter reveals how this entire blog post was generated. The converter that transforms F#
+literate files into Markdown is itself written in F#, compiled to Python with Fable, and documented using its own
+output format. It's turtles all the way down.
 
 ## What is Fable?
 
-[Fable](https://fable.io/) is a compiler that brings F# to different platforms. While
-Fable is best known for compiling F# to JavaScript, it also supports other targets
+[Fable](https://fable.io/) is a compiler that brings F# to different platforms and ecosystems. While
+Fable is best known for compiling F# to TypeScript and JavaScript, it also supports other targets
 including Python, Rust, and Dart.
 
 ## Why Fable.Python?
@@ -19,13 +41,14 @@ F# is a functional-first language with powerful features like:
 - **Type inference** - Write less, express more
 - **Pattern matching** - Elegant handling of complex data
 - **Immutability by default** - Safer, more predictable code
-- **Algebraic data types** - Model your domain precisely
+- **Algebraic data types** - Model your domain precisely with discriminated unions and records
 
-With Fable.Python, you get all these benefits while targeting the Python ecosystem.
+These features make F# excellent for [Domain Modeling](https://www.pragprog.com/titles/swdddf/domain-modeling-made-functional/) -
+expressing business rules as types that the compiler enforces.
 
-Python is the [most popular programming language](https://www.tiobe.com/tiobe-index/)
-in the world. And no matter what you think of Python, it will always be the second
-best language for everything. That ubiquity is exactly why Fable.Python exists.
+Python is currently [the most popular programming language in the world](https://www.tiobe.com/tiobe-index/). And no
+matter what you think of Python, it will always be the second best language for everything. That ubiquity is exactly why
+Fable.Python exists.
 
 ## When to Use Fable.Python
 
@@ -41,7 +64,7 @@ Fable.Python is a great choice when:
 - **Units of measure** - F#'s compile-time dimensional analysis prevents unit errors
   that Python can't catch
 
-## When NOT to Use Fable.Python
+## When Not to Use Fable.Python
 
 - When your F# code depends on .NET libraries without Fable support
 - Performance-critical code (Python has runtime overhead)
@@ -51,10 +74,10 @@ Fable.Python is a great choice when:
 
 ## A First Example
 
-Let's start with F# code that compiles to Python:
+Let's begin with a simple F# example:
 
 ```fsharp
-let greet name = $"Hello, {name}!"
+let greet (name: string) = $"Hello, {name}!"
 
 let message = greet "Fable.Python"
 ```
@@ -62,18 +85,15 @@ let message = greet "Fable.Python"
 When compiled with Fable, this generates the following Python:
 
 ```python
-def greet[_A](name: Any | None = None) -> str:
-    return ("Hello, " + str(name)) + "!"
+def greet(name: str) -> str:
+    return concat("Hello, ", name, "!")
 
 message: str = greet("Fable.Python")
 ```
 
-The `name: Any | None = None` signature may look odd at first. This happens because
-F# infers the type from usage - since we only call `greet` with a string, the compiler
-doesn't know if it might also be called with unit `()` (no argument). If it were,
-Python would call it as `greet()` instead of `greet("Fable.Python")`. Adding an
-explicit type annotation `let greet (name: string) = ...` would generate a cleaner
-`name: str` parameter.
+Notice how the explicit type annotation `(name: string)` generates clean Python with `name: str`.
+Without it, F# infers from usage and Fable generates `name: Any | None = None` to handle cases
+where the function might be called with no argument. Type annotations give you cleaner output.
 
 ## The Power of Types
 
@@ -94,37 +114,30 @@ let shapes = [ Circle 5.0; Rectangle(3.0, 4.0) ]
 let totalArea = shapes |> List.sumBy area
 ```
 
-This compiles to Python while preserving the semantic meaning. The `Shape` type
-becomes a tagged class structure, and the `match` expression becomes clean
-conditional logic. The compiler ensures you handle all cases - if you add a
-new shape variant, the compiler will warn you about unhandled cases in
-the `area` function.
+This compiles to Python while preserving the semantic meaning. The `Shape` type becomes a tagged class structure, and
+the `match` expression becomes clean conditional logic. The compiler ensures you handle all cases, i.e if you add a new
+shape variant, the compiler will warn you about unhandled cases in the `area` function.
 
 ## What's Next?
 
-In the following chapters, we'll explore setting up your environment,
-working with Python libraries, and understanding F# compatibility with Fable.
-
-Let's begin.
+In the following chapters, we will get started by setting up your environment, working with Python libraries, and understanding
+F# compatibility with Fable. Let's begin.
 
 ## Are You a Python Developer?
 
-If you're coming from Python, welcome. This chapter will help you understand
-the F# code you'll see throughout this guide. F# is more approachable than
-it might appear, and many concepts are familiar.
+If you're coming from Python, this chapter covers the F# code you'll see throughout this guide. F# is more approachable than it might appear, and many concepts are familiar.
 
 ### What is F#?
 
-F# is a functional-first language that runs on .NET. But here's the key insight
-for you: **with Fable.Python, .NET is just a build tool**. You write F#, it
-compiles to Python, and you run Python. Your deployment is pure Python.
+F# is a functional-first language that runs on .NET. But here's the key insight for you: **with Fable.Python, .NET is
+just a build tool**. You write F#, it compiles to Python, and you run Python. Your deployment is pure Python.
 
-Think of it like TypeScript for JavaScript - you get better tooling and type
-safety during development, but the output is the language you know.
+Think of it like TypeScript for JavaScript - you get better tooling and type safety during development, but the output
+is the language you know.
 
 ### Key Concepts You'll See
 
-Let's map F# concepts to Python equivalents you already understand.
+Here's how F# concepts map to Python equivalents you already know.
 
 #### Type Inference
 
@@ -149,7 +162,7 @@ No need to write it unless you want to.
 
 #### Pattern Matching
 
-Python 3.10+ has `match`/`case`. F# pattern matching is similar but more powerful:
+Python 3.10+ has `match`/`case`:
 
 ```python
 # Python match/case
@@ -161,6 +174,8 @@ match command:
     case _:
         return unknown_command()
 ```
+
+F# pattern matching is similar but more powerful:
 
 ```fsharp
 let handleCommand command =
@@ -261,7 +276,10 @@ let numbers = [ -1; 2; -3; 4; 5 ]
 
 // F# pipeline - reads left to right, top to bottom
 let result =
-    numbers |> List.filter (fun x -> x > 0) |> List.map (fun x -> x * 2) |> List.sum
+    numbers
+    |> List.filter (fun x -> x > 0)
+    |> List.map (fun x -> x * 2)
+    |> List.sum
 ```
 
 The `|>` operator takes the value on the left and passes it as the last
@@ -305,7 +323,7 @@ unwrap the option first.
 | Dictionary       | `{"a": 1}`          | `Map.ofList [("a", 1)]`   |
 | None check       | `if x is None:`     | `match x with None ->`    |
 | String format    | `f"Hello {name}"`   | `$"Hello {name}"`         |
-| Type annotation  | `x: int`            | `x: int32`.               |
+| Type annotation  | `x: int`            | `x: int32`                |
 | Comments         | `# comment`         | `// comment`              |
 | Multiline string | `"""text"""`        | `"""text"""` (same!)      |
 
@@ -343,16 +361,30 @@ in the next chapter!
 
 ## Getting Started with Fable.Python
 
-Let's set up a Fable.Python project from scratch and get our first F# code
-running as Python.
+In this section we will set up a Fable.Python project from scratch and get our first F# code running as Python.
 
 ### Prerequisites
 
 You'll need:
 
 - [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later. We recommend
-  installing the latest LTS version, currently .NET 10
+  installing the latest LTS version, currently .NET 10)
 - [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
+- [uv](https://docs.astral.sh/uv/) (recommended) - A fast Python package manager written in Rust that
+  simplifies dependency management, virtual environments, and the installation of Python itself.
+
+If you don't have `uv` installed:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+You can also use `pip` if you prefer, but `uv` is significantly faster and handles
+virtual environments automatically.
 
 ### Project Setup
 
@@ -367,7 +399,7 @@ dotnet new console -lang F#
 
 # Set up local tools and install Fable 5 (alpha)
 dotnet new tool-manifest
-dotnet tool install fable --version 5.0.0-alpha.20
+dotnet tool install fable --version 5.0.0-alpha.21
 
 # Add Fable.Core package
 dotnet add package Fable.Core --version 5.0.0-beta.4
@@ -378,13 +410,18 @@ dotnet add package Fable.Core --version 5.0.0-beta.4
 Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
-pip install "fable-library==5.0.0a20"
+# Using uv (recommended)
+uv add "fable-library==5.0.0a21"
+
+# Or with pip
+pip install "fable-library==5.0.0a21"
 ```
 
 ---
 
-**Note:** Version pinning matters. The fable-library version must match
-your Fable compiler version. PyPI uses `5.0.0a20` format instead of `5.0.0-alpha.20`.
+**Note:** Version pinning matters. The fable-library version must match your Fable
+compiler version. Note that PyPI uses `5.0.0a21` format instead of `5.0.0-alpha.21` for
+prerelease alpha releases.
 
 ---
 
@@ -410,10 +447,14 @@ Transpile to Python:
 dotnet fable --lang python
 ```
 
-This creates `Program.py` in your project directory. Run it:
+This creates `program.py` in your project directory. Run it:
 
 ```bash
-python3 Program.py
+# Using uv
+uv run python program.py
+
+# Or directly with python
+python3 program.py
 ```
 
 You should see:
@@ -440,7 +481,7 @@ After setup, your project looks like this:
 ```text
 my-fable-python/
 ├── Program.fs          # Your F# source code
-├── Program.py          # Generated Python (don't edit!)
+├── program.py          # Generated Python (don't edit!)
 ├── my-fable-python.fsproj
 ├── fable_modules/      # Fable runtime modules
 └── .config/
@@ -449,13 +490,12 @@ my-fable-python/
 
 ### Next Steps
 
-Now that you have a working setup, let's explore how to interact with Python
-libraries in the next chapter on **Bindings**.
+Now that you have a working setup, let's see how we can interact with Python
+libraries by using **Bindings**.
 
 ## Python Interop
 
-Now that you have a Fable.Python project set up, let's explore how to work
-with Python libraries and the existing bindings in the Fable.Python ecosystem.
+With a Fable.Python project set up, we can start to work with Python libraries and the existing bindings in the Fable.Python ecosystem.
 
 ### The Fable.Python Library
 
@@ -665,6 +705,35 @@ let factorial (count: int) : int =
 """
 ```
 
+#### Py.python for Literal Python Code
+
+`Py.python` provides a cleaner way to embed literal Python code without
+parameter placeholders. The code is printed as statements, so use Python's
+`return` keyword if you need to return a value:
+
+```fsharp
+open Fable.Python
+
+let greet (name: string) : string =
+    Py.python
+        $"""
+    greeting = f"Hello, {{name}}!"
+    return greeting
+"""
+```
+
+This generates:
+
+```python
+def greet(name: str) -> str:
+    greeting = f"Hello, {name}!"
+    return greeting
+```
+
+This is useful when you want to write a block of Python code directly,
+especially when it doesn't need parameter substitution (you can use F#
+string interpolation instead).
+
 ### StringEnum: Type-Safe String Constants
 
 `StringEnum` creates discriminated unions that compile to Python strings:
@@ -863,15 +932,19 @@ let loadConfig (path: string) =
 
 ### What's Next?
 
-Now you know how to use existing Python bindings and core interop features.
-In the next chapter, we'll learn how to create your own bindings for
-Python libraries that don't have F# bindings yet.
+Now you know how to use existing Python bindings and core interop features. In the next
+chapter we will see how you can create your own bindings for Python libraries that don't
+have F# bindings yet.
 
 ## Creating Python Bindings
 
-When a Python library doesn't have F# bindings, you can create your own.
-This chapter covers the patterns and best practices for writing type-safe
-bindings that feel natural in F#.
+When a Python library doesn't have F# bindings, you can create your own. This chapter
+covers the patterns and best practices for writing type-safe bindings that feel natural
+in F#.
+
+> Writing bindings have long been a major pain point, spending countless hours wrestling
+> with interop details. With AI-assisted coding tools, generating initial binding code
+> for your favorite Python libraries has become much easier.
 
 ### Core Principles
 
@@ -1139,8 +1212,7 @@ let createClient url = myLibrary.createClient url
 
 ### What's Next?
 
-Now you know how to create bindings. The **Compatibility** chapter covers
-which F# features work with Fable.Python and any limitations to be aware of.
+With bindings covered, the **Compatibility** chapter shows which F# features work with Fable.Python and any limitations to be aware of.
 
 ## F# Compatibility in Fable.Python
 
@@ -1188,7 +1260,7 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 |      F# Type      |           Python           |
 | ----------------- | -------------------------- |
 | `Tuple`           | `tuple`                    |
-| `Option<T>`       | erased to `T \| None`      |
+| `Option<T>`       | `Optional[T]` (*)          |
 | `string`          | `str`                      |
 | `List<T>`         | `List.fs` (immutable list) |
 | `Map<K,V>`        | `Map.fs` (immutable map)   |
@@ -1196,6 +1268,8 @@ Most FSharp.Core operators are supported, including formatting with `sprintf`,
 | `ResizeArray<T>`  | `list`                     |
 | Record types      | `@dataclass`               |
 | Anonymous Records | `dict`                     |
+
+(*) Generated as `T | None` in Python 3.12+
 
 ### Interfaces and Protocols
 
@@ -1510,7 +1584,7 @@ Asynchronous programming is essential for modern applications - from web APIs to
 processing pipelines. F# offers two models for async code: `async` workflows and `task`
 expressions. Understanding when to use each is key to effective Fable.Python development.
 
-### Comparing Python and F`#` Async Models
+### Comparing Python and F# Async Models
 
 Python's async model is built on `asyncio`. Python coroutines are **cold** - calling an
 `async def` function returns a coroutine object that doesn't execute until awaited:
@@ -1535,7 +1609,7 @@ F# provides two computation expressions that compile to Python's async model:
 - **`async { }`** - F#'s original async workflows (cold, composable, multi-target)
 - **`task { }`** - .NET-style tasks (hot in .NET, compiles to native `async def` in Python)
 
-### F`#` Async Workflows
+### F# Async Workflows
 
 The `async` computation expression has been part of F# since the beginning. It creates
 *cold* async operations - they don't start until explicitly run.
@@ -1580,9 +1654,7 @@ F# async shines when composing multiple operations:
 let fetchMultipleAsync () =
     async {
         let! results =
-            [ fetchDataAsync ()
-              fetchDataAsync ()
-              fetchDataAsync () ]
+            [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ]
             |> Async.Parallel
 
         return results |> Array.toList
@@ -1617,7 +1689,7 @@ let catchExample () =
     }
 ```
 
-### F`#` Tasks
+### F# Tasks
 
 The `task` computation expression in .NET creates *hot* tasks that start immediately.
 However, when compiled to Python via Fable, tasks become Python coroutines - which are
@@ -1697,8 +1769,10 @@ let taskExample () =
 let taskWithLoop () =
     task {
         let mutable sum = 0
+
         for i in 1..10 do
             sum <- sum + i
+
         return sum
     }
 ```
@@ -1810,16 +1884,13 @@ Here's a pattern for async HTTP operations (assuming you have bindings for `aioh
 // Simulated async HTTP - in real code you'd use aiohttp bindings
 let fetchUrlAsync (url: string) =
     async {
-        do! Async.Sleep 100  // Simulates network delay
+        do! Async.Sleep 100 // Simulates network delay
         return $"Response from {url}"
     }
 
 let fetchMultipleUrls (urls: string list) =
     async {
-        let! responses =
-            urls
-            |> List.map fetchUrlAsync
-            |> Async.Parallel
+        let! responses = urls |> List.map fetchUrlAsync |> Async.Parallel
 
         return responses |> Array.toList
     }
@@ -1833,18 +1904,17 @@ Choose based on whether operations are independent:
 let sequentialProcessing items =
     async {
         let results = ResizeArray()
+
         for item in items do
             let! result = fetchUrlAsync item
             results.Add(result)
+
         return results |> Seq.toList
     }
 
 let parallelProcessing items =
     async {
-        let! results =
-            items
-            |> List.map fetchUrlAsync
-            |> Async.Parallel
+        let! results = items |> List.map fetchUrlAsync |> Async.Parallel
         return results |> Array.toList
     }
 ```
@@ -1862,17 +1932,18 @@ let cancellableWork (token: CancellationToken) =
             token.ThrowIfCancellationRequested()
             do! Async.Sleep 50
             printfn $"Step {i}"
+
         return "Completed"
     }
 
 let runWithTimeout () =
     async {
-        use cts = new CancellationTokenSource(2000)  // 2 second timeout
+        use cts = new CancellationTokenSource(2000) // 2 second timeout
+
         try
             let! result = cancellableWork cts.Token
             return Some result
-        with
-        | :? OperationCanceledException ->
+        with :? OperationCanceledException ->
             return None
     }
 ```
@@ -1904,7 +1975,11 @@ When working with Python frameworks that expect native async functions:
 let getItemTask (itemId: int) =
     task {
         do! Task.Delay 10
-        return {| id = itemId; name = "Widget" |}
+
+        return {|
+            id = itemId
+            name = "Widget"
+        |}
     }
 ```
 
@@ -1931,9 +2006,7 @@ let complexWorkflow () =
     async {
         // Run three operations in parallel
         let! results =
-            [ fetchDataAsync ()
-              fetchDataAsync ()
-              fetchDataAsync () ]
+            [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ]
             |> Async.Parallel
 
         // Then do something sequential
@@ -2078,7 +2151,7 @@ same API to Fable, supporting JavaScript, Python, and .NET.
 
 - **Composable**: Tests are values you can combine and transform
 - **No magic**: No reflection, no attributes - just functions
-- **Familiar F# idioms**: Uses computation expressions and pipelines
+- **Familiar F# idioms**: Uses lists and pipelines
 
 #### Setting Up Pyxpecto
 
@@ -2193,6 +2266,9 @@ project setup:
 ```
 
 #### Justfile Commands
+
+We recommend [just](https://github.com/casey/just) as a command runner - it's like
+`make` but simpler and cross-platform. Here's how to set up test commands:
 
 ```just
 # Run tests (.NET)
@@ -2350,7 +2426,7 @@ dotnet tool install fable --version 5.0.0-alpha.21
 dotnet add package Fable.Core --version 5.0.0-beta.4
 
 # Install the Python runtime
-uv add fable-library==5.0.0a17
+uv add fable-library==5.0.0a21
 ```
 
 Then compile your F# to Python:
@@ -2454,16 +2530,13 @@ type Product() =
     member val Name: string = "" with get, set
 
     // Field with description
-    member val Description: Field<string> =
-        Field.Description "Product description" with get, set
+    member val Description: Field<string> = Field.Description "Product description" with get, set
 
     // Field with numeric constraints
-    member val Price: Field<float> =
-        Field.Ge 0.0 with get, set  // price >= 0
+    member val Price: Field<float> = Field.Ge 0.0 with get, set // price >= 0
 
     // Field with string constraints
-    member val Sku: Field<string> =
-        Field.Pattern "^[A-Z]{2}-[0-9]{4}$" with get, set  // e.g., "AB-1234"
+    member val Sku: Field<string> = Field.Pattern "^[A-Z]{2}-[0-9]{4}$" with get, set // e.g., "AB-1234"
 ```
 
 Available field constraints:
@@ -2521,6 +2594,7 @@ let customer = Customer.create 1 "Alice" (Some "alice@example.com")
 
 let showCustomer (c: Customer) =
     printfn "Customer %d: %s" c.id c.name
+
     match c.email with
     | Some email -> printfn "  Email: %s" email
     | None -> printfn "  No email on file"
@@ -2536,17 +2610,19 @@ This pattern is useful when you want to:
 
 F# types map naturally to Python/Pydantic types:
 
-|   F# Type   | Python Type  |             Notes              |
-| ----------- | ------------ | ------------------------------ |
-| `string`    | `str`        |                                |
-| `int`       | `int`        |                                |
-| `float`     | `float`      |                                |
-| `bool`      | `bool`       |                                |
-| `'T option` | `T \| None`  | Modern union syntax            |
-| `'T list`   | `list[T]`    |                                |
-| `'T array`  | `list[T]`    |                                |
-| Record      | `class`      | With `@dataclass` or BaseModel |
-| DU          | Tagged class | See below                      |
+|   F# Type   |    Python Type    |             Notes              |
+| ----------- | ----------------- | ------------------------------ |
+| `string`    | `str`             |                                |
+| `int`       | `int`             |                                |
+| `float`     | `float`           |                                |
+| `bool`      | `bool`            |                                |
+| `'T option` | `Optional[T]` (*) | Modern union syntax            |
+| `'T list`   | `list[T]`         |                                |
+| `'T array`  | `list[T]`         |                                |
+| Record      | `class`           | With `@dataclass` or BaseModel |
+| DU          | Tagged class      | See below                      |
+
+(*) Generated as `T | None` in Python 3.12+
 
 #### F# Option to Python Union
 
@@ -2566,10 +2642,10 @@ let serializationExample () =
     user.Email <- Some "alice@example.com"
 
     // Convert to dictionary
-    let dict = user.model_dump()
+    let dict = user.model_dump ()
 
     // Convert to JSON string
-    let json = user.model_dump_json()
+    let json = user.model_dump_json ()
 
     // Pretty-printed JSON
     let prettyJson = user.model_dump_json_indented 2
@@ -2610,12 +2686,15 @@ This distinction is important for well-architected applications:
 /// Domain model - uses precise F# types
 type UserId = UserId of System.Guid
 
-type Money = { Amount: decimal; Currency: string }
+type Money = {
+    Amount: decimal
+    Currency: string
+}
 
 type DomainUser = {
     Id: UserId
     Name: string
-    Age: int32           // Bounded, wrapping arithmetic
+    Age: int32 // Bounded, wrapping arithmetic
     Balance: Money
 }
 
@@ -2638,7 +2717,11 @@ Explicit transformation between domain and DTO:
 module UserMapping =
     let toDTO (user: DomainUser) : UserDTO =
         let dto = UserDTO()
-        dto.Id <- match user.Id with UserId guid -> string guid
+
+        dto.Id <-
+            match user.Id with
+            | UserId guid -> string guid
+
         dto.Name <- user.Name
         dto.Age <- int user.Age
         dto.BalanceAmount <- float user.Balance.Amount
@@ -2648,7 +2731,7 @@ module UserMapping =
     let fromDTO (dto: UserDTO) : Result<DomainUser, string> =
         try
             Ok {
-                Id = UserId (System.Guid.Parse dto.Id)
+                Id = UserId(System.Guid.Parse dto.Id)
                 Name = dto.Name
                 Age = int32 dto.Age
                 Balance = {
@@ -2686,6 +2769,454 @@ and Python's rich ecosystem at runtime.
 
 In the next chapter, we'll see how to use these Pydantic models with FastAPI
 to build type-safe web APIs.
+
+## FastAPI
+
+As an F# developer you are probably familiar with web frameworks like ASP.NET Core, Giraffe, or Oxpecker. But Fable.Python
+also allows you to build web APIs that run in Python environments, using the popular FastAPI framework.
+
+### What is FastAPI?
+
+[FastAPI](https://fastapi.tiangolo.com/) is Python's most popular modern web framework.
+It's fast, easy to use, and built on top of Pydantic for automatic request validation
+and OpenAPI documentation.
+
+FastAPI gives you:
+
+- **High performance** - One of the fastest Python frameworks available
+- **Automatic validation** - Request/response validation via Pydantic, that you already know from
+  the previous chapter
+- **Type hints** - Leverages Python type hints for better editor support
+- **OpenAPI docs** - Interactive Swagger UI and ReDoc generated automatically
+- **Async support** - Native async/await for high concurrency
+
+Fable.Python includes bindings for FastAPI, allowing you to write type-safe APIs
+using F# while leveraging Python's mature web ecosystem.
+
+### Setting Up
+
+Add FastAPI and uvicorn to your Python environment:
+
+```bash
+uv add fastapi uvicorn
+```
+
+Then import the FastAPI module in your F# code:
+
+```fsharp
+open Fable.Python.FastAPI
+open Fable.Python.Pydantic
+```
+
+### Creating the Application
+
+Create a FastAPI application instance at the module level:
+
+```fsharp
+let app = FastAPI(title = "My API", version = "1.0.0")
+```
+
+This generates:
+
+```python
+app: FastAPI = FastAPI(title="My API", description=None, version="1.0.0")
+```
+
+The `app` variable name is important - the route decorators reference it.
+
+### Defining Models
+
+Request and response models use Pydantic's `BaseModel` (covered in the previous chapter):
+
+```fsharp
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type Item(Id: int, Name: string, Price: float, InStock: bool) =
+    inherit BaseModel()
+    member val Id: int = Id with get, set
+    member val Name: string = Name with get, set
+    member val Price: float = Price with get, set
+    member val InStock: bool = InStock with get, set
+
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type CreateItemRequest(Name: string, Price: float, InStock: bool) =
+    inherit BaseModel()
+    member val Name: string = Name with get, set
+    member val Price: float = Price with get, set
+    member val InStock: bool = InStock with get, set
+```
+
+### Defining Endpoints
+
+#### The APIClass Pattern
+
+FastAPI endpoints are defined using a class with decorated static methods:
+
+```fsharp
+let items = ResizeArray<Item>()
+
+[<APIClass>]
+type API() =
+    /// GET /items - List all items
+    [<Get("/items")>]
+    static member get_items() : ResizeArray<Item> = items
+
+    /// GET /items/{item_id} - Get item by ID
+    [<Get("/items/{item_id}")>]
+    static member get_item(item_id: int) : Task<obj> =
+        task {
+            match items |> Seq.tryFind (fun i -> i.Id = item_id) with
+            | Some item -> return item :> obj
+            | None -> return {| error = "Item not found" |}
+        }
+
+    /// POST /items - Create a new item
+    [<Post("/items")>]
+    static member create_item(request: CreateItemRequest) : Task<obj> =
+        task {
+            let newId =
+                if items.Count = 0 then
+                    1
+                else
+                    (items |> Seq.map (fun i -> i.Id) |> Seq.max) + 1
+
+            let newItem = Item(newId, request.Name, request.Price, request.InStock)
+            items.Add(newItem)
+
+            return {|
+                status = "created"
+                item = newItem
+            |}
+        }
+```
+
+This generates Python with proper FastAPI decorators:
+
+```python
+class API:
+    @app.get("/items")
+    @staticmethod
+    def get_items(__unit: None = None) -> list[Item]:
+        return items
+
+    @app.get("/items/{item_id}")
+    @staticmethod
+    async def get_item(item_id: int32) -> Any:
+        builder_0040: Any = task()
+
+        def _arrow97(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            def predicate(i: Item) -> bool:
+                return i.Id == item_id
+
+            match_value: Item | None = try_find(predicate, to_enumerable(items))
+            if match_value is None:
+                return builder_0040.Return({"error": "Item not found"})
+
+            else:
+                item: Item = match_value
+                return builder_0040.Return(item)
+
+        return await builder_0040.Run(builder_0040.Delay(_arrow97))
+
+    @app.post("/items")
+    @staticmethod
+    async def create_item(request: CreateItemRequest) -> Any:
+        builder_0040: Any = task()
+
+        def _arrow99(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+            def mapping(i: Item) -> int32:
+                return i.Id
+
+            class ObjectExpr98:
+                def Compare(self, x: int32, y: int32) -> int32:
+                    return compare_primitives(x, y)
+
+            new_item: Item = Item(
+                Id=int32.ONE
+                if (len(items) == int32.ZERO)
+                else (
+                    max(map(mapping, to_enumerable(items)), ObjectExpr98()) + int32.ONE
+                ),
+                Name=request.Name,
+                Price=request.Price,
+                InStock=request.InStock,
+            )
+            (items.append(new_item))
+            return builder_0040.Return({"item": new_item, "status": "created"})
+
+        return await builder_0040.Run(builder_0040.Delay(_arrow99))
+```
+
+#### Key Points
+
+- `[<APIClass>]` marks the class for FastAPI routing. We use a class because Fable
+  can only apply decorator attributes to types and methods, not standalone functions
+- Route decorators: `[<Get>]`, `[<Post>]`, `[<Put>]`, `[<Delete>]`, `[<Patch>]`
+- Path parameters use `{param_name}` syntax and map to function arguments
+- Pydantic models in parameters are automatically validated
+- Return types can be sync or async (`Task<'T>`)
+
+#### Anonymous Records for Quick Responses
+
+F# anonymous records compile to Python dictionaries, perfect for JSON responses:
+
+```fsharp
+[<APIClass>]
+type HealthAPI() =
+    [<Get("/health")>]
+    static member health() = {|
+        status = "healthy"
+        version = "1.0.0"
+    |}
+```
+
+### Async Endpoints
+
+For I/O-bound operations, use `task { }` to create async endpoints:
+
+```fsharp
+[<APIClass>]
+type AsyncAPI() =
+    [<Get("/slow")>]
+    static member slow_operation() =
+        task {
+            // Simulate async work (e.g., database query)
+            do! Task.Delay(100)
+            return {| message = "Done!" |}
+        }
+```
+
+The `task { }` computation expression compiles to Python's `async def`,
+integrating naturally with FastAPI's async support.
+
+### Path and Query Parameters
+
+#### Path Parameters
+
+Path parameters are extracted from the URL:
+
+```fsharp
+[<APIClass>]
+type UsersAPI() =
+    [<Get("/users/{user_id}")>]
+    static member get_user(user_id: int) = {|
+        id = user_id
+        name = "User " + string user_id
+    |}
+
+    [<Get("/users/{user_id}/posts/{post_id}")>]
+    static member get_user_post(user_id: int, post_id: int) = {|
+        user_id = user_id
+        post_id = post_id
+    |}
+```
+
+#### Query Parameters
+
+Query parameters are function arguments not in the path:
+
+```fsharp
+[<APIClass>]
+type SearchAPI() =
+    [<Get("/search")>]
+    static member search(q: string, limit: int) = {|
+        query = q
+        limit = limit
+    |}
+```
+
+A request to `/search?q=hello&limit=10` maps to `search("hello", 10)`.
+
+### Request Bodies
+
+POST/PUT/PATCH endpoints receive request bodies as Pydantic models:
+
+```fsharp
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type CreateUserRequest(name: string, email: string) =
+    inherit BaseModel()
+    member val name: string = name with get, set
+    member val email: string = email with get, set
+
+[<APIClass>]
+type UserCrudAPI() =
+    [<Post("/users")>]
+    static member create_user(request: CreateUserRequest) =
+        // FastAPI automatically validates the request body
+        {|
+            status = "created"
+            name = request.name
+            email = request.email
+        |}
+```
+
+FastAPI validates the incoming JSON against the Pydantic model and returns
+a 422 error if validation fails.
+
+### HTTP Exceptions
+
+Return proper HTTP errors using `HTTPException`:
+
+```fsharp
+[<APIClass>]
+type ErrorAPI() =
+    [<Get("/protected")>]
+    static member protected_route() =
+        // Check authentication (simplified example)
+        let isAuthenticated = false
+
+        if not isAuthenticated then
+            raise (System.Exception("Not authenticated"))
+
+        {| message = "Secret data" |}
+```
+
+In practice, you would use FastAPI's dependency injection for authentication.
+The `HTTPException` type is available for more idiomatic error handling:
+
+```fsharp
+// For proper HTTP exceptions, use a helper that emits Python's raise
+[<Emit("raise HTTPException(status_code=$0, detail=$1)")>]
+let raiseHttp (code: int) (msg: string) : unit = nativeOnly
+
+// Then in your endpoint:
+if not isAuthenticated then
+    raiseHttp 401 "Not authenticated"
+```
+
+### Running the Application
+
+Compile with Fable and run with uvicorn:
+
+```bash
+# Compile F# to Python
+dotnet fable --lang python --outDir build
+
+# Run the server
+cd build
+uvicorn app:app --reload
+```
+
+Visit:
+
+- `http://localhost:8000` - Your API
+- `http://localhost:8000/docs` - Interactive Swagger UI
+- `http://localhost:8000/redoc` - ReDoc documentation
+
+### Development Workflow
+
+For hot-reloading during development, run Fable in watch mode:
+
+```bash
+# Terminal 1: Watch F# files
+dotnet fable --lang python --outDir build --watch
+
+# Terminal 2: Run uvicorn with reload
+cd build
+uvicorn app:app --reload
+```
+
+Changes to your F# code automatically recompile and uvicorn picks up the changes.
+
+### Complete Example
+
+Here's a minimal but complete FastAPI application:
+
+```fsharp
+module App
+
+open System.Threading.Tasks
+open Fable.Core
+open Fable.Python.FastAPI
+open Fable.Python.Pydantic
+
+// Create the app
+let app = FastAPI(title = "Todo API", version = "1.0.0")
+
+// Define the model
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+type Todo(id: int, title: string, completed: bool) =
+    inherit BaseModel()
+    member val id: int = id with get, set
+    member val title: string = title with get, set
+    member val completed: bool = completed with get, set
+
+// In-memory store
+let todos = ResizeArray<Todo>()
+
+// Define endpoints
+[<APIClass>]
+type TodoAPI() =
+    [<Get("/")>]
+    static member root() =
+        {| message = "Welcome to Todo API" |}
+
+    [<Get("/todos")>]
+    static member list_todos() = todos
+
+    [<Post("/todos")>]
+    static member create_todo(title: string) =
+        let todo = Todo(todos.Count + 1, title, false)
+        todos.Add(todo)
+        todo
+```
+
+### Why F# + FastAPI?
+
+This combination gives you:
+
+1. **Compile-time safety** - F# catches errors before they reach Python
+2. **Runtime validation** - Pydantic validates incoming requests
+3. **Auto documentation** - OpenAPI specs generated from your types
+4. **Familiar ecosystem** - Deploy with standard Python tools
+
+You write type-safe F# code, but deploy and run it like any Python web service.
+
+### Hybrid Architecture: F# Backend with Python Endpoints
+
+Another compelling use case is when you have an existing web service written in F# (using
+ASP.NET Core, Giraffe, or Oxpecker) but need access to the Python ecosystem for specific
+functionality. You can use FastAPI to expose endpoints that leverage Python libraries,
+while your main service remains in F#.
+
+This hybrid approach works well when you need:
+
+#### AI/ML Libraries
+
+- **LangChain** / **LlamaIndex** - LLM orchestration and RAG pipelines
+- **Hugging Face Transformers** - Pre-trained models for NLP, vision, audio
+- **OpenAI SDK** / **Anthropic SDK** - LLM API integration with structured outputs
+- **scikit-learn** - Classical machine learning models
+- **PyTorch** / **TensorFlow** - Deep learning inference
+
+#### Data Science & Analytics
+
+- **Pandas** / **Polars** - Data manipulation and analysis
+- **NumPy** - Numerical computing
+- **Matplotlib** / **Plotly** - Chart and visualization generation
+- **Apache Arrow** - Efficient cross-language data interchange
+
+#### Document Processing
+
+- **PyMuPDF** / **pdfplumber** - PDF text and table extraction
+- **python-docx** - Word document generation
+- **Pillow** - Image processing and manipulation
+- **OpenCV** - Computer vision operations
+
+#### Specialized APIs
+
+- **boto3** - AWS services (S3, Lambda, SQS, etc.)
+- **google-cloud-*** - GCP services (BigQuery, Cloud Storage, Vertex AI)
+
+#### Scientific Computing
+
+- **SciPy** - Scientific algorithms and optimization
+- **SymPy** - Symbolic mathematics
+- **NetworkX** - Graph algorithms and analysis
+
+The pattern is straightforward: your F# service handles core domain logic and type-safe
+business rules, while specific endpoints delegate to a FastAPI service for capabilities
+where Python dominates. This is especially powerful for AI/ML workloads where the Python
+ecosystem is unmatched.
 
 ## Units of Measure
 
@@ -2848,7 +3379,7 @@ Fable.Python isn't just a toy: you're looking at a real project that works.
 
 ### How It Works
 
-The converter follows a compiler-like architecture with three phases:
+The converter follows a compiler-like architecture with three phases (just like Fable itself):
 
 1. **Parse**: Convert source lines into a Block AST
 2. **Transform**: Filter hidden blocks, resolve Python includes
@@ -2915,7 +3446,9 @@ module Utils =
                     if m.Value.Length = 1 then
                         m.Value.ToLowerInvariant()
                     else
-                        m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+                        m.Value.Substring(0, 1)
+                        + "_"
+                        + m.Value.Substring(1, 1).ToLowerInvariant()
             )
         else
             name
@@ -3060,7 +3593,10 @@ module MarkdownPrinter =
         | IncludePython symbols ->
             // Unresolved - should have been transformed
             let symbolList = String.concat ", " symbols
-            "\n<!-- include-python: " + symbolList + " (unresolved) -->\n"
+
+            "\n<!-- include-python: "
+            + symbolList
+            + " (unresolved) -->\n"
         | Hidden _ -> "" // Should have been filtered
 
     /// Render a document to markdown string.
@@ -3192,7 +3728,7 @@ dotnet fable Fable.Literate/ --lang python -o output/Fable.Literate/
 python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction.md
 ```
 
-That's it! A complete literate programming converter in under 200 lines of F`#`,
+That's it! A complete literate programming converter in under 200 lines of F#,
 compiled to Python, processing this very blog post.
 
 ## Summary
@@ -3200,13 +3736,13 @@ compiled to Python, processing this very blog post.
 We've covered a lot of ground in this guide:
 
 - **Introduction**: What Fable.Python is and why it matters
-- **F`#` for Python Developers**: Bridging the conceptual gap between languages
+- **F# for Python Developers**: Bridging the conceptual gap between languages
 - **Getting Started**: Setting up your first Fable.Python project
-- **Interop**: Seamlessly calling Python libraries from F`#`
+- **Interop**: Seamlessly calling Python libraries from F#
 - **Bindings**: Creating type-safe wrappers for Python code
-- **Compatibility**: Understanding what F`#` features work (and which don't)
-- **Async Programming**: Mapping F`#` async to Python's asyncio
-- **Testing**: Running F`#` code with pytest and other Python test runners
+- **Compatibility**: Understanding what F# features work (and which don't)
+- **Async Programming**: Mapping F# async to Python's asyncio
+- **Testing**: Running F# code with pytest and other Python test runners
 - **Fable v5**: The latest features including the Rust core and PyPI packages
 - **Pydantic**: Building validated data models with Python's favorite library
 - **Units of Measure**: Compile-time dimensional analysis that vanishes at runtime
@@ -3217,7 +3753,7 @@ We've covered a lot of ground in this guide:
 If you're reading this, the code worked.
 
 This entire blog post - every chapter, every code example, every explanation -
-was processed by F`#` code compiled to Python, and output as Markdown.
+was processed by F# code compiled to Python, and output as Markdown.
 The proof is in the reading.
 
 ### Get Involved
@@ -3228,7 +3764,7 @@ The source code for this entire project is available on GitHub:
 
 The repository contains:
 
-- All the chapter source files (literate F`#`)
+- All the chapter source files (literate F#)
 - The Fable.Literate converter
 - Build scripts and configuration
 - The generated blog post
@@ -3241,7 +3777,6 @@ from the community make it better for everyone.
 
 - [Fable Documentation](https://fable.io/docs/)
 - [Fable.Python on GitHub](https://github.com/fable-compiler/Fable.Python/)
-- [F`#` Software Foundation](https://fsharp.org/)
-- [Fable Discord](https://discord.gg/8c3Ng9N) - The Fable community is friendly and helpful
+- [F# Software Foundation](https://fsharp.org/)
 
-Welcome to Fable.Python. Now go build something.
+... now go build something.
