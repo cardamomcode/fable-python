@@ -3,9 +3,13 @@ module Bindings
 (**
 # Creating Python Bindings
 
-When a Python library doesn't have F# bindings, you can create your own.
-This chapter covers the patterns and best practices for writing type-safe
-bindings that feel natural in F#.
+When a Python library doesn't have F# bindings, you can create your own. This chapter
+covers the patterns and best practices for writing type-safe bindings that feel natural
+in F#.
+
+> Writing bindings have long been a major pain point, spending countless hours wrestling
+> with interop details. With AI-assisted coding tools, generating initial binding code
+> for your favorite Python libraries has become much easier.
 
 ## Core Principles
 

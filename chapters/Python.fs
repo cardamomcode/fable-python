@@ -47,7 +47,7 @@ No need to write it unless you want to.
 
 ### Pattern Matching
 
-Python 3.10+ has `match`/`case`. F# pattern matching is similar but more powerful:
+Python 3.10+ has `match`/`case`:
 
 ```python
 # Python match/case
@@ -59,6 +59,8 @@ match command:
     case _:
         return unknown_command()
 ```
+
+F# pattern matching is similar but more powerful:
 *)
 
 let handleCommand command =

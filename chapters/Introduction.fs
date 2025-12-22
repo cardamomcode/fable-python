@@ -42,9 +42,10 @@ F# is a functional-first language with powerful features like:
 - **Type inference** - Write less, express more
 - **Pattern matching** - Elegant handling of complex data
 - **Immutability by default** - Safer, more predictable code
-- **Algebraic data types** - Model your domain precisely
+- **Algebraic data types** - Model your domain precisely with discriminated unions and records
 
-With Fable.Python, you get all these benefits while targeting the Python ecosystem.
+These features make F# excellent for [Domain Modeling](https://www.pragprog.com/titles/swdddf/domain-modeling-made-functional/) -
+expressing business rules as types that the compiler enforces.
 
 Python is currently [the most popular programming language in the world](https://www.tiobe.com/tiobe-index/). And no
 matter what you think of Python, it will always be the second best language for everything. That ubiquity is exactly why

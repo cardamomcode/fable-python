@@ -95,4 +95,4 @@ docs/
 
 - [Fable.Python docs](https://fable.io/docs/getting-started/python.html)
 - [Fable.Python GitHub](https://github.com/fable-compiler/Fable.Python/)
-- [Content Plan](CONTENT-PLAN.md) - Chapter structure and TODO items
+- [Content Plan](CONTENT-PLAN.md) - Chapter structure and TODO items (important!)

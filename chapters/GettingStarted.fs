@@ -12,7 +12,8 @@ You'll need:
 - [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later. We recommend
   installing the latest LTS version, currently .NET 10)
 - [Python 3.12+](https://www.python.org/downloads/) (Fable targets Python 3.12 or higher)
-- [uv](https://docs.astral.sh/uv/) (recommended) - A fast Python package manager written in Rust
+- [uv](https://docs.astral.sh/uv/) (recommended) - A fast Python package manager written in Rust that
+  simplifies dependency management, virtual environments, and the installation of Python itself.
 
 If you don't have `uv` installed:
 
@@ -60,8 +61,9 @@ pip install "fable-library==5.0.0a21"
 
 ---
 
-**Note:** Version pinning matters. The fable-library version must match
-your Fable compiler version. PyPI uses `5.0.0a21` format instead of `5.0.0-alpha.21`.
+**Note:** Version pinning matters. The fable-library version must match your Fable
+compiler version. Note that PyPI uses `5.0.0a21` format instead of `5.0.0-alpha.21` for
+prerelease alpha releases.
 
 ---
 
