@@ -21,7 +21,7 @@ a compiler that transforms F# code into Python.
 7. [Testing](#heading-testing-fablepython-projects) - Using pytest with F# code
 8. [Fable v5](#heading-fable-v5-whats-new) - New features and the Rust core
 9. [Pydantic Integration](#heading-pydantic-interop) - Type-safe data validation
-10. [FastAPI](#heading-fastapi) - Building type-safe web APIs
+10. [FastAPI](#heading-fastapi) - Building type-safe web APIs in the Python ecosystem
 11. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
 12. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
 

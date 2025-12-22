@@ -100,7 +100,9 @@ module Utils =
                     if m.Value.Length = 1 then
                         m.Value.ToLowerInvariant()
                     else
-                        m.Value.Substring(0, 1) + "_" + m.Value.Substring(1, 1).ToLowerInvariant()
+                        m.Value.Substring(0, 1)
+                        + "_"
+                        + m.Value.Substring(1, 1).ToLowerInvariant()
             )
         else
             name
@@ -328,7 +330,10 @@ module MarkdownPrinter =
         | IncludePython symbols ->
             // Unresolved - should have been transformed
             let symbolList = String.concat ", " symbols
-            "\n<!-- include-python: " + symbolList + " (unresolved) -->\n"
+
+            "\n<!-- include-python: "
+            + symbolList
+            + " (unresolved) -->\n"
         | Hidden _ -> "" // Should have been filtered
 
     /// Render a document to markdown string.
@@ -348,7 +353,11 @@ module MarkdownPrinter =
             | s when s.StartsWith "#" -> inCodeBlock, ("#" + line) :: acc
             | _ -> inCodeBlock, line :: acc
 
-        lines |> Array.fold folder (false, []) |> snd |> List.rev |> String.concat "\n"
+        lines
+        |> Array.fold folder (false, [])
+        |> snd
+        |> List.rev
+        |> String.concat "\n"
 
 (**
 ## Pipeline Module

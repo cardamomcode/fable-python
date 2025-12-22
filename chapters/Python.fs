@@ -159,7 +159,10 @@ let numbers = [ -1; 2; -3; 4; 5 ]
 
 // F# pipeline - reads left to right, top to bottom
 let result =
-    numbers |> List.filter (fun x -> x > 0) |> List.map (fun x -> x * 2) |> List.sum
+    numbers
+    |> List.filter (fun x -> x > 0)
+    |> List.map (fun x -> x * 2)
+    |> List.sum
 
 (**
 The `|>` operator takes the value on the left and passes it as the last

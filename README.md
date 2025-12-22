@@ -2,7 +2,7 @@
 
 > Write F#, run Python - a practical guide to Fable.Python
 
-This is a comprehensive guide to [Fable.Python](https://github.com/fable-compiler/Fable.Python/), written as literate F# that transpiles to Python and generates its own documentation.
+This blog-post is a guide to [Fable.Python](https://github.com/fable-compiler/Fable.Python/), written as literate F# that transpiles to Python and generates its own documentation.
 
 ## Chapters
 
@@ -23,9 +23,10 @@ This is a comprehensive guide to [Fable.Python](https://github.com/fable-compile
 
 ## The Strange Loop
 
-This guide is self-documenting: each chapter is an `.fs` file with embedded Markdown comments. **Fabletext** (the final chapter) processes these files to generate the documentation you're reading - including itself.
+This guide is self-documenting: each chapter is an `.fs` file with embedded Markdown comments. **Fable.Literate** (the final chapter) processes these files to generate the documentation you're reading - including itself.
 
 The chain:
+
 1. Write F# with embedded Markdown (`chapters/*.fs`)
 2. Compile to Python with Fable
 3. Run Fabletext (F# compiled to Python) to extract documentation
