@@ -3,8 +3,7 @@ module ForPythonDevelopers
 (**
 # Are You a Python Developer?
 
-If you're coming from Python, welcome. This chapter will help you understand the F# code you'll see throughout this
-guide. F# is more approachable than it might appear, and many concepts are familiar.
+If you're coming from Python, this chapter covers the F# code you'll see throughout this guide. F# is more approachable than it might appear, and many concepts are familiar.
 
 ## What is F#?
 
@@ -16,7 +15,7 @@ is the language you know.
 
 ## Key Concepts You'll See
 
-Let's map F# concepts to Python equivalents you already understand.
+Here's how F# concepts map to Python equivalents you already know.
 
 ### Type Inference
 
@@ -47,7 +46,7 @@ No need to write it unless you want to.
 
 ### Pattern Matching
 
-Python 3.10+ has `match`/`case`. F# pattern matching is similar but more powerful:
+Python 3.10+ has `match`/`case`:
 
 ```python
 # Python match/case
@@ -59,6 +58,8 @@ match command:
     case _:
         return unknown_command()
 ```
+
+F# pattern matching is similar but more powerful:
 *)
 
 let handleCommand command =
@@ -159,7 +160,10 @@ let numbers = [ -1; 2; -3; 4; 5 ]
 
 // F# pipeline - reads left to right, top to bottom
 let result =
-    numbers |> List.filter (fun x -> x > 0) |> List.map (fun x -> x * 2) |> List.sum
+    numbers
+    |> List.filter (fun x -> x > 0)
+    |> List.map (fun x -> x * 2)
+    |> List.sum
 
 (**
 The `|>` operator takes the value on the left and passes it as the last

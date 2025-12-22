@@ -7,7 +7,7 @@ module Introduction
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
 this wonderful tradition that brings the F# community together every year!
 
-Welcome to this guide on [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
+This guide covers [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
 ## Table of Contents
@@ -21,7 +21,7 @@ a compiler that transforms F# code into Python.
 7. [Testing](#heading-testing-fablepython-projects) - Using pytest with F# code
 8. [Fable v5](#heading-fable-v5-whats-new) - New features and the Rust core
 9. [Pydantic Integration](#heading-pydantic-interop) - Type-safe data validation
-10. [FastAPI](#heading-fastapi) - Building type-safe web APIs
+10. [FastAPI](#heading-fastapi) - Building type-safe web APIs in the Python ecosystem
 11. [Units of Measure](#heading-units-of-measure) - Compile-time dimensional analysis
 12. [Fable.Literate](#heading-fableliterate-the-strange-loop) - The tool that wrote this post
 
@@ -42,9 +42,10 @@ F# is a functional-first language with powerful features like:
 - **Type inference** - Write less, express more
 - **Pattern matching** - Elegant handling of complex data
 - **Immutability by default** - Safer, more predictable code
-- **Algebraic data types** - Model your domain precisely
+- **Algebraic data types** - Model your domain precisely with discriminated unions and records
 
-With Fable.Python, you get all these benefits while targeting the Python ecosystem.
+These features make F# excellent for [Domain Modeling](https://www.pragprog.com/titles/swdddf/domain-modeling-made-functional/) -
+expressing business rules as types that the compiler enforces.
 
 Python is currently [the most popular programming language in the world](https://www.tiobe.com/tiobe-index/). And no
 matter what you think of Python, it will always be the second best language for everything. That ubiquity is exactly why
@@ -74,7 +75,7 @@ Fable.Python is a great choice when:
 
 ## A First Example
 
-Let's start with F# code that compiles to Python:
+Let's begin with a simple F# example:
 *)
 
 let greet (name: string) = $"Hello, {name}!"
@@ -117,6 +118,6 @@ shape variant, the compiler will warn you about unhandled cases in the `area` fu
 
 ## What's Next?
 
-In the following chapters, we'll explore setting up your environment, working with Python libraries, and understanding
+In the following chapters, we will get started by setting up your environment, working with Python libraries, and understanding
 F# compatibility with Fable. Let's begin.
 *)

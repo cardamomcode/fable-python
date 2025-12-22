@@ -76,7 +76,9 @@ F# async shines when composing multiple operations:
 
 let fetchMultipleAsync () =
     async {
-        let! results = [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ] |> Async.Parallel
+        let! results =
+            [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ]
+            |> Async.Parallel
 
         return results |> Array.toList
     }
@@ -398,7 +400,9 @@ When you need rich composition primitives:
 let complexWorkflow () =
     async {
         // Run three operations in parallel
-        let! results = [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ] |> Async.Parallel
+        let! results =
+            [ fetchDataAsync (); fetchDataAsync (); fetchDataAsync () ]
+            |> Async.Parallel
 
         // Then do something sequential
         do! Async.Sleep 100

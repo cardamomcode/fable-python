@@ -59,6 +59,9 @@ generate: build format-python
 blogpost: build format-python
     #!/usr/bin/env bash
     mkdir -p docs
+    # Get Fable version (strip ANSI codes) and timestamp
+    fable_version=$(dotnet fable --version 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' || echo "unknown")
+    timestamp=$(date -u +"%Y-%m-%d %H:%M UTC")
     first=true
     for name in {{chapters}}; do
         # Convert PascalCase to snake_case for Python file naming
@@ -75,6 +78,10 @@ blogpost: build format-python
             uv run python output/Fable.Literate/app.py \
                 --python-file "$pyfile" \
                 "chapters/${name}.fs" > docs/blogpost.md
+            # Insert version banner after the first heading using awk
+            awk -v ts="$timestamp" -v fv="$fable_version" \
+                'NR==1 {print; print ""; print "*Generated on " ts " using Fable v" fv "*"; next} {print}' \
+                docs/blogpost.md > docs/blogpost.tmp && mv docs/blogpost.tmp docs/blogpost.md
             first=false
         else
             # Remaining chapters get headers increased by one level

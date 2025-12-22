@@ -3,9 +3,13 @@ module Bindings
 (**
 # Creating Python Bindings
 
-When a Python library doesn't have F# bindings, you can create your own.
-This chapter covers the patterns and best practices for writing type-safe
-bindings that feel natural in F#.
+When a Python library doesn't have F# bindings, you can create your own. This chapter
+covers the patterns and best practices for writing type-safe bindings that feel natural
+in F#.
+
+> Writing bindings have long been a major pain point, spending countless hours wrestling
+> with interop details. With AI-assisted coding tools, generating initial binding code
+> for your favorite Python libraries has become much easier.
 
 ## Core Principles
 
@@ -273,6 +277,5 @@ let createClient url = myLibrary.createClient url
 
 ## What's Next?
 
-Now you know how to create bindings. The **Compatibility** chapter covers
-which F# features work with Fable.Python and any limitations to be aware of.
+With bindings covered, the **Compatibility** chapter shows which F# features work with Fable.Python and any limitations to be aware of.
 *)

@@ -97,27 +97,35 @@ let items = ResizeArray<Item>()
 type API() =
     /// GET /items - List all items
     [<Get("/items")>]
-    static member get_items() : ResizeArray<Item> =
-        items
+    static member get_items() : ResizeArray<Item> = items
 
     /// GET /items/{item_id} - Get item by ID
     [<Get("/items/{item_id}")>]
-    static member get_item(item_id: int) : Task<obj> = task {
-        match items |> Seq.tryFind (fun i -> i.Id = item_id) with
-        | Some item -> return item :> obj
-        | None -> return {| error = "Item not found" |}
-    }
+    static member get_item(item_id: int) : Task<obj> =
+        task {
+            match items |> Seq.tryFind (fun i -> i.Id = item_id) with
+            | Some item -> return item :> obj
+            | None -> return {| error = "Item not found" |}
+        }
 
     /// POST /items - Create a new item
     [<Post("/items")>]
-    static member create_item(request: CreateItemRequest) : Task<obj> = task {
-        let newId =
-            if items.Count = 0 then 1
-            else (items |> Seq.map (fun i -> i.Id) |> Seq.max) + 1
-        let newItem = Item(newId, request.Name, request.Price, request.InStock)
-        items.Add(newItem)
-        return {| status = "created"; item = newItem |}
-    }
+    static member create_item(request: CreateItemRequest) : Task<obj> =
+        task {
+            let newId =
+                if items.Count = 0 then
+                    1
+                else
+                    (items |> Seq.map (fun i -> i.Id) |> Seq.max) + 1
+
+            let newItem = Item(newId, request.Name, request.Price, request.InStock)
+            items.Add(newItem)
+
+            return {|
+                status = "created"
+                item = newItem
+            |}
+        }
 
 (**
 This generates Python with proper FastAPI decorators:
@@ -143,8 +151,10 @@ F# anonymous records compile to Python dictionaries, perfect for JSON responses:
 [<APIClass>]
 type HealthAPI() =
     [<Get("/health")>]
-    static member health() =
-        {| status = "healthy"; version = "1.0.0" |}
+    static member health() = {|
+        status = "healthy"
+        version = "1.0.0"
+    |}
 
 (**
 ## Async Endpoints
@@ -155,11 +165,12 @@ For I/O-bound operations, use `task { }` to create async endpoints:
 [<APIClass>]
 type AsyncAPI() =
     [<Get("/slow")>]
-    static member slow_operation() = task {
-        // Simulate async work (e.g., database query)
-        do! Task.Delay(100)
-        return {| message = "Done!" |}
-    }
+    static member slow_operation() =
+        task {
+            // Simulate async work (e.g., database query)
+            do! Task.Delay(100)
+            return {| message = "Done!" |}
+        }
 
 (**
 The `task { }` computation expression compiles to Python's `async def`,
@@ -175,12 +186,16 @@ Path parameters are extracted from the URL:
 [<APIClass>]
 type UsersAPI() =
     [<Get("/users/{user_id}")>]
-    static member get_user(user_id: int) =
-        {| id = user_id; name = "User " + string user_id |}
+    static member get_user(user_id: int) = {|
+        id = user_id
+        name = "User " + string user_id
+    |}
 
     [<Get("/users/{user_id}/posts/{post_id}")>]
-    static member get_user_post(user_id: int, post_id: int) =
-        {| user_id = user_id; post_id = post_id |}
+    static member get_user_post(user_id: int, post_id: int) = {|
+        user_id = user_id
+        post_id = post_id
+    |}
 
 (**
 ### Query Parameters
@@ -191,8 +206,10 @@ Query parameters are function arguments not in the path:
 [<APIClass>]
 type SearchAPI() =
     [<Get("/search")>]
-    static member search(q: string, limit: int) =
-        {| query = q; limit = limit |}
+    static member search(q: string, limit: int) = {|
+        query = q
+        limit = limit
+    |}
 
 (**
 A request to `/search?q=hello&limit=10` maps to `search("hello", 10)`.
@@ -213,7 +230,11 @@ type UserCrudAPI() =
     [<Post("/users")>]
     static member create_user(request: CreateUserRequest) =
         // FastAPI automatically validates the request body
-        {| status = "created"; name = request.name; email = request.email |}
+        {|
+            status = "created"
+            name = request.name
+            email = request.email
+        |}
 
 (**
 FastAPI validates the incoming JSON against the Pydantic model and returns
@@ -230,8 +251,10 @@ type ErrorAPI() =
     static member protected_route() =
         // Check authentication (simplified example)
         let isAuthenticated = false
+
         if not isAuthenticated then
             raise (System.Exception("Not authenticated"))
+
         {| message = "Secret data" |}
 
 (**
@@ -336,4 +359,51 @@ This combination gives you:
 4. **Familiar ecosystem** - Deploy with standard Python tools
 
 You write type-safe F# code, but deploy and run it like any Python web service.
+
+## Hybrid Architecture: F# Backend with Python Endpoints
+
+Another compelling use case is when you have an existing web service written in F# (using
+ASP.NET Core, Giraffe, or Oxpecker) but need access to the Python ecosystem for specific
+functionality. You can use FastAPI to expose endpoints that leverage Python libraries,
+while your main service remains in F#.
+
+This hybrid approach works well when you need:
+
+### AI/ML Libraries
+
+- **LangChain** / **LlamaIndex** - LLM orchestration and RAG pipelines
+- **Hugging Face Transformers** - Pre-trained models for NLP, vision, audio
+- **OpenAI SDK** / **Anthropic SDK** - LLM API integration with structured outputs
+- **scikit-learn** - Classical machine learning models
+- **PyTorch** / **TensorFlow** - Deep learning inference
+
+### Data Science & Analytics
+
+- **Pandas** / **Polars** - Data manipulation and analysis
+- **NumPy** - Numerical computing
+- **Matplotlib** / **Plotly** - Chart and visualization generation
+- **Apache Arrow** - Efficient cross-language data interchange
+
+### Document Processing
+
+- **PyMuPDF** / **pdfplumber** - PDF text and table extraction
+- **python-docx** - Word document generation
+- **Pillow** - Image processing and manipulation
+- **OpenCV** - Computer vision operations
+
+### Specialized APIs
+
+- **boto3** - AWS services (S3, Lambda, SQS, etc.)
+- **google-cloud-*** - GCP services (BigQuery, Cloud Storage, Vertex AI)
+
+### Scientific Computing
+
+- **SciPy** - Scientific algorithms and optimization
+- **SymPy** - Symbolic mathematics
+- **NetworkX** - Graph algorithms and analysis
+
+The pattern is straightforward: your F# service handles core domain logic and type-safe
+business rules, while specific endpoints delegate to a FastAPI service for capabilities
+where Python dominates. This is especially powerful for AI/ML workloads where the Python
+ecosystem is unmatched.
 *)
