@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-22 13:26 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2025-12-22 13:28 UTC using Fable v5.0.0-alpha.21*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -3428,7 +3428,7 @@ module Utils =
         "@alfonsogarciacaro"
         "@ncave"
         "@MangelMaxime"
-        "@claude-code 🤖"
+        "@claude 🤖"
     |]
 
     /// Returns a random contributor from the list.
@@ -3469,8 +3469,8 @@ module Utils =
 
         if endPos > start then
             directive.Substring(start, endPos - start).Trim()
-            |> fun s -> s.Split(',')
-            |> Array.map (fun s -> s.Trim())
+            |> _.Split(',')
+            |> Array.map _.Trim()
             |> Array.filter (fun s -> s.Length > 0)
             |> Array.toList
         else
@@ -3539,7 +3539,7 @@ Parse lines into a document AST
         lines
         |> Seq.fold parseLine initial
         |> flushState
-        |> fun ctx -> List.rev ctx.Blocks
+        |> _.Blocks |> List.rev
 ```
 
 ### Transform Module
@@ -3562,7 +3562,7 @@ module Transform =
     /// Filters standalone module/namespace declarations (e.g., "module Foo" or "namespace Bar")
     /// but keeps module definitions with bodies (e.g., "module Foo =").
     let private isBoilerplate (lines: string list) : bool =
-        let code = lines |> String.concat "\n" |> (fun s -> s.Trim())
+        let code = lines |> String.concat "\n" |> _.Trim()
 
         String.IsNullOrWhiteSpace code
         || code.StartsWith "namespace "
@@ -3585,18 +3585,15 @@ module MarkdownPrinter =
     /// Render a single block to markdown.
     let private printBlock (block: Block) : string =
         match block with
-        | Markdown content -> content + "\n"
+        | Markdown content -> $"{content}\n"
         | FSharpCode lines ->
             let code = lines |> String.concat "\n" |> trimCode
-            "\n```fsharp\n" + code + "\n```\n\n"
-        | PythonCode content -> "\n```python\n" + content + "\n```\n\n"
+            $"\n```fsharp\n{code}\n```\n\n"
+        | PythonCode content -> $"\n```python\n{content}\n```\n\n"
         | IncludePython symbols ->
             // Unresolved - should have been transformed
             let symbolList = String.concat ", " symbols
-
-            "\n<!-- include-python: "
-            + symbolList
-            + " (unresolved) -->\n"
+            $"\n<!-- include-python: {symbolList} (unresolved) -->\n"
         | Hidden _ -> "" // Should have been filtered
 
     /// Render a document to markdown string.
