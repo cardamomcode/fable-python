@@ -7,7 +7,7 @@ module Introduction
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
 this wonderful tradition that brings the F# community together every year!
 
-Welcome to this guide on [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
+This guide covers [Fable](https://fable.io/) and [Fable.Python](https://github.com/fable-compiler/Fable.Python/) -
 a compiler that transforms F# code into Python.
 
 ## Table of Contents
@@ -75,7 +75,7 @@ Fable.Python is a great choice when:
 
 ## A First Example
 
-Let's start with F# code that compiles to Python:
+Let's begin with a simple F# example:
 *)
 
 let greet (name: string) = $"Hello, {name}!"
@@ -118,6 +118,6 @@ shape variant, the compiler will warn you about unhandled cases in the `area` fu
 
 ## What's Next?
 
-In the following chapters, we'll explore setting up your environment, working with Python libraries, and understanding
+In the following chapters, we will get started by setting up your environment, working with Python libraries, and understanding
 F# compatibility with Fable. Let's begin.
 *)

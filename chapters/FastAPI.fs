@@ -367,7 +367,7 @@ ASP.NET Core, Giraffe, or Oxpecker) but need access to the Python ecosystem for 
 functionality. You can use FastAPI to expose endpoints that leverage Python libraries,
 while your main service remains in F#.
 
-This hybrid approach shines when you need:
+This hybrid approach works well when you need:
 
 ### AI/ML Libraries
 

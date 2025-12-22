@@ -3,7 +3,7 @@ module GettingStarted
 (**
 # Getting Started with Fable.Python
 
-Let's set up a Fable.Python project from scratch and get our first F# code running as Python.
+In this section we will set up a Fable.Python project from scratch and get our first F# code running as Python.
 
 ## Prerequisites
 
@@ -138,6 +138,6 @@ my-fable-python/
 
 ## Next Steps
 
-Now that you have a working setup, let's explore how to interact with Python
-libraries in the next chapter on **Bindings**.
+Now that you have a working setup, let's see how we can interact with Python
+libraries by using **Bindings**.
 *)

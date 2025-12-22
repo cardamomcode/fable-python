@@ -235,6 +235,9 @@ project setup:
 
 ### Justfile Commands
 
+We recommend [just](https://github.com/casey/just) as a command runner - it's like
+`make` but simpler and cross-platform. Here's how to set up test commands:
+
 ```just
 # Run tests (.NET)
 test:

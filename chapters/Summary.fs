@@ -49,5 +49,5 @@ from the community make it better for everyone.
 - [Fable.Python on GitHub](https://github.com/fable-compiler/Fable.Python/)
 - [F# Software Foundation](https://fsharp.org/)
 
-Welcome to Fable.Python. Now go build something.
+... now go build something.
 *)

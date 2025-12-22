@@ -3,8 +3,7 @@ module Interop
 (**
 # Python Interop
 
-Now that you have a Fable.Python project set up, let's explore how to work
-with Python libraries and the existing bindings in the Fable.Python ecosystem.
+With a Fable.Python project set up, we can start to work with Python libraries and the existing bindings in the Fable.Python ecosystem.
 
 ## The Fable.Python Library
 
@@ -427,7 +426,7 @@ let loadConfig (path: string) =
 (**
 ## What's Next?
 
-Now you know how to use existing Python bindings and core interop features.
-In the next chapter, we'll learn how to create your own bindings for
-Python libraries that don't have F# bindings yet.
+Now you know how to use existing Python bindings and core interop features. In the next
+chapter we will see how you can create your own bindings for Python libraries that don't
+have F# bindings yet.
 *)

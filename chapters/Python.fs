@@ -3,8 +3,7 @@ module ForPythonDevelopers
 (**
 # Are You a Python Developer?
 
-If you're coming from Python, welcome. This chapter will help you understand the F# code you'll see throughout this
-guide. F# is more approachable than it might appear, and many concepts are familiar.
+If you're coming from Python, this chapter covers the F# code you'll see throughout this guide. F# is more approachable than it might appear, and many concepts are familiar.
 
 ## What is F#?
 
@@ -16,7 +15,7 @@ is the language you know.
 
 ## Key Concepts You'll See
 
-Let's map F# concepts to Python equivalents you already understand.
+Here's how F# concepts map to Python equivalents you already know.
 
 ### Type Inference
 

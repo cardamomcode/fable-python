@@ -277,6 +277,5 @@ let createClient url = myLibrary.createClient url
 
 ## What's Next?
 
-Now you know how to create bindings. The **Compatibility** chapter covers
-which F# features work with Fable.Python and any limitations to be aware of.
+With bindings covered, the **Compatibility** chapter shows which F# features work with Fable.Python and any limitations to be aware of.
 *)
