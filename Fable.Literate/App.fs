@@ -395,12 +395,7 @@ For example, the extractSymbol function in F# generates this Python:
 
 (*** include-python: extractSymbol ***)
 
-(**
-## Main Entry Point
-
-Read the input file, convert it, and print the result:
-*)
-
+(*** hide ***)
 /// Gets the value following a flag argument (e.g., --python-file path.py).
 let getFlagValue (flag: string) (args: string[]) : string option =
     // Find the index of the flag in args
@@ -422,6 +417,12 @@ let getPositionalArgs (args: string[]) : string[] =
     |> Array.filter (fun (i, arg) -> not (isFlag arg) && not (isValueOfFlag i))
     // Extract just the argument strings
     |> Array.map snd
+
+(**
+## Main Entry Point
+
+Read the input file, convert it, and print the result:
+*)
 
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.

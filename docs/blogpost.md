@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-22 13:28 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2025-12-22 14:44 UTC using Fable v5.0.0-alpha.21*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -3656,28 +3656,6 @@ def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
 Read the input file, convert it, and print the result:
 
 ```fsharp
-/// Gets the value following a flag argument (e.g., --python-file path.py).
-let getFlagValue (flag: string) (args: string[]) : string option =
-    // Find the index of the flag in args
-    args
-    |> Array.tryFindIndex ((=) flag)
-    // Return the next argument if it exists
-    |> Option.bind (fun i -> if i + 1 < args.Length then Some args.[i + 1] else None)
-
-/// Extracts positional arguments (file paths) from command line args.
-/// Filters out flags (--foo) and their values (--python-file path.py).
-let getPositionalArgs (args: string[]) : string[] =
-    let isFlag (arg: string) = arg.StartsWith "--"
-    let isValueOfFlag i = i > 0 && args.[i - 1] = "--python-file"
-
-    // Pair each argument with its index
-    args
-    |> Array.indexed
-    // Keep only non-flags that aren't values of flags
-    |> Array.filter (fun (i, arg) -> not (isFlag arg) && not (isValueOfFlag i))
-    // Extract just the argument strings
-    |> Array.map snd
-
 /// Main entry point. Converts a literate F# file to Markdown.
 /// Use --increase-headers flag to bump all header levels by one.
 /// Use --python-file <path> to enable include-python directives.
@@ -3726,7 +3704,8 @@ python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction
 ```
 
 That's it! A complete literate programming converter in under 200 lines of F#,
-compiled to Python, processing this very blog post.
+compiled to Python, processing this very blog post. See
+the [full source](https://github.com/cardamomcode/fable-python/tree/main/Fable.Literate) on GitHub for all the details.
 
 ## Summary
 
