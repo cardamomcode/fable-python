@@ -33,7 +33,7 @@ open Fable.Python.Pydantic
 (**
 *)
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type User() =
     inherit BaseModel()
     member val Name: string = "" with get, set
@@ -52,8 +52,10 @@ class User(BaseModel):
     Email: str | None = None
 ```
 
-The `style = Attributes` tells Fable to generate class-level attributes (what
-Pydantic expects) rather than instance attributes set in `__init__`.
+The `Py.DataClass` attribute is shorthand for
+`Py.ClassAttributes(style = Attributes, init = false)`. It tells Fable to
+generate class-level type annotations (what Pydantic expects) rather than
+instance attributes set in `__init__`.
 
 ### The Decorator Attribute
 
@@ -91,7 +93,7 @@ Pydantic's `Field()` function lets you add constraints and metadata to fields.
 The `Fable.Python.Pydantic` module provides typed helpers:
 *)
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Product() =
     inherit BaseModel()
 
@@ -267,7 +269,7 @@ type DomainUser = {
 }
 
 /// DTO - uses Python-native types for serialization
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type UserDTO() =
     inherit BaseModel()
     member val Id: string = "" with get, set

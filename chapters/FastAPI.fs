@@ -15,7 +15,7 @@ FastAPI gives you:
 - **High performance** - One of the fastest Python frameworks available
 - **Automatic validation** - Request/response validation via Pydantic, that you already know from
   the previous chapter
-- **Type hints** - Leverages Python type hints for better editor support
+- **Type hints** - Leverages Python type hints for validation and better editor support
 - **OpenAPI docs** - Interactive Swagger UI and ReDoc generated automatically
 - **Async support** - Native async/await for high concurrency
 
@@ -68,7 +68,7 @@ The `app` variable name is important - the route decorators reference it.
 Request and response models use Pydantic's `BaseModel` (covered in the previous chapter):
 *)
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Item(Id: int, Name: string, Price: float, InStock: bool) =
     inherit BaseModel()
     member val Id: int = Id with get, set
@@ -76,7 +76,7 @@ type Item(Id: int, Name: string, Price: float, InStock: bool) =
     member val Price: float = Price with get, set
     member val InStock: bool = InStock with get, set
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type CreateItemRequest(Name: string, Price: float, InStock: bool) =
     inherit BaseModel()
     member val Name: string = Name with get, set
@@ -219,7 +219,7 @@ A request to `/search?q=hello&limit=10` maps to `search("hello", 10)`.
 POST/PUT/PATCH endpoints receive request bodies as Pydantic models:
 *)
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type CreateUserRequest(name: string, email: string) =
     inherit BaseModel()
     member val name: string = name with get, set
@@ -322,7 +322,7 @@ open Fable.Python.Pydantic
 let app = FastAPI(title = "Todo API", version = "1.0.0")
 
 // Define the model
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Todo(id: int, title: string, completed: bool) =
     inherit BaseModel()
     member val id: int = id with get, set
