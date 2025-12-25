@@ -77,13 +77,7 @@ Utility functions for naming conversion and line classification:
 
 module Utils =
     /// List of contributors to thank (Fable-style).
-    let contributors = [|
-        "@dbrattli"
-        "@alfonsogarciacaro"
-        "@ncave"
-        "@MangelMaxime"
-        "@claude 🤖"
-    |]
+    let contributors = [| "@dbrattli"; "@alfonsogarciacaro"; "@ncave"; "@MangelMaxime"; "@claude 🤖" |]
 
     /// Returns a random contributor from the list.
     let randomContributor () : string =
@@ -257,7 +251,8 @@ module Parser =
         lines
         |> Seq.fold parseLine initial
         |> flushState
-        |> _.Blocks |> List.rev
+        |> _.Blocks
+        |> List.rev
 
 (**
 ## Transform Module

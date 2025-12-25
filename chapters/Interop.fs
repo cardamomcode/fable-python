@@ -336,12 +336,21 @@ type DecoratedUser() =
 Control how class members are generated for Python frameworks like Pydantic:
 *)
 
+// BaseModel from Pydantic (import this from Fable.Python.Pydantic in
+// real code to get proper bindings)
+[<Import("BaseModel", "pydantic")>]
+type BaseModel() = class end
+
 [<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes, false)>]
 type PydanticModel() =
+    inherit BaseModel()
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
 
-(** This generates class-level type annotations suitable for Pydantic: *)
+(**
+This generates class-level type annotations suitable for Pydantic.
+See the Pydantic chapter for more on working with Pydantic models:
+*)
 
 (*** include-python: PydanticModel ***)
 

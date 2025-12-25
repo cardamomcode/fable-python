@@ -16,7 +16,8 @@ We've covered a lot of ground in this guide:
 - **Testing**: Running F# code with pytest and other Python test runners
 - **Fable v5**: The latest features including the Rust core and PyPI packages
 - **Pydantic**: Building validated data models with Python's favorite library
-- **Units of Measure**: Compile-time dimensional analysis that vanishes at runtime
+- **FastAPI**: Building type-safe web APIs in the Python ecosystem
+- **Units of Measure**: Compile-time dimensional analysis that vanishes (erased) at runtime
 - **Fable.Literate**: A self-documenting literate programming converter
 
 ## The Punchline
