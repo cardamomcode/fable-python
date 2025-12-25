@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-25 08:26 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2025-12-25 11:01 UTC using Fable v5.0.0-alpha.21*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -831,11 +831,42 @@ class DecoratedUser:
     Name: str = ""
 ```
 
+#### DecorateTemplate for Reusable Decorators
+
+When building a library, you can create custom decorator attributes that users
+can apply without knowing the underlying Python syntax. Use `Py.DecorateTemplate`:
+
+```fsharp
+/// Custom route decorator for a web framework
+[<Erase>]
+[<Py.DecorateTemplate("app.get('{0}')", "fastapi")>]
+type GetRouteAttribute(path: string) =
+    inherit System.Attribute()
+```
+
+Now users of your library can simply write:
+
+```fsharp
+[<GetRoute("/users")>]
+static member get_users() = ...
+// Generates: @app.get('/users')
+```
+
+The template string uses `{0}`, `{1}`, etc. as placeholders for the attribute's
+constructor arguments. The `[<Erase>]` attribute prevents the attribute type
+from being emitted to Python.
+
+This is how the FastAPI bindings define `[<Get>]`, `[<Post>]`, and other
+route decorators - making them easy for users to apply without understanding
+the Python decorator syntax.
+
 ### Class Attributes and DataClasses
 
-#### Py.ClassAttributes
+#### Py.DataClass
 
-Control how class members are generated for Python frameworks like Pydantic:
+Use `Py.DataClass` to generate Python classes with class-level type
+annotations as defined by [PEP 526](https://peps.python.org/pep-0526/#class-and-instance-variable-annotations).
+This is what frameworks like Pydantic, dataclasses, and attrs expect:
 
 ```fsharp
 // BaseModel from Pydantic (import this from Fable.Python.Pydantic in
@@ -843,7 +874,7 @@ Control how class members are generated for Python frameworks like Pydantic:
 [<Import("BaseModel", "pydantic")>]
 type BaseModel() = class end
 
-[<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes, false)>]
+[<Py.DataClass>]
 type PydanticModel() =
     inherit BaseModel()
     member val Name: string = "" with get, set
@@ -859,16 +890,51 @@ class PydanticModel(BaseModel):
     Name: str = ""
 ```
 
-#### Py.DataClass Shorthand
+#### Py.ClassAttributes
 
-`Py.DataClass` is shorthand for `ClassAttributes(Attributes, false)`:
+`Py.DataClass` is shorthand for `Py.ClassAttributes(style = Attributes, init = false)`.
+Use `Py.ClassAttributes` directly when you need different options:
 
 ```fsharp
-[<Py.DataClass>]
-type User2() =
-    member val Username: string = "" with get, set
-    member val Email: string = "" with get, set
+[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = true)>]
+type UserWithInit() =
+    member val Name: string = "" with get, set
+    member val Age: int = 0 with get, set
 ```
+
+The parameters control how the class is generated:
+
+|      Parameter       |                           Effect                           |
+| -------------------- | ---------------------------------------------------------- |
+| `style = Attributes` | Generate class-level type annotations                      |
+| `style = Properties` | Generate properties with instance attribute backing        |
+| `init = false`       | Don't generate `__init__` (Pydantic/dataclass provides it) |
+| `init = true`        | Generate `__init__` with attribute assignments             |
+
+#### ClassAttributesTemplate for Library Authors
+
+Library authors can create shorthand attributes using `ClassAttributesTemplate`.
+This is how `Py.DataClass` is defined:
+
+```fsharp
+[<Erase>]
+[<ClassAttributesTemplate(ClassAttributeStyle.Attributes, false)>]
+type DataClassAttribute() =
+    inherit Attribute()
+```
+
+You can create your own shortcuts for common patterns:
+
+```fsharp
+/// Shorthand for mutable classes with generated __init__
+[<Erase>]
+[<Py.ClassAttributesTemplate(Py.ClassAttributeStyle.Attributes, true)>]
+type MutableClassAttribute() =
+    inherit System.Attribute()
+```
+
+Now users can simply write `[<MutableClass>]` instead of the verbose
+`[<Py.ClassAttributes(style = Attributes, init = true)>]`.
 
 #### AttachMembers
 
@@ -2469,7 +2535,7 @@ The `Py.ClassAttributes` attribute controls how class members are generated,
 which is essential for Pydantic compatibility:
 
 ```fsharp
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type User() =
     inherit BaseModel()
     member val Name: string = "" with get, set
@@ -2488,8 +2554,10 @@ class User(BaseModel):
     Email: str | None = None
 ```
 
-The `style = Attributes` tells Fable to generate class-level attributes (what
-Pydantic expects) rather than instance attributes set in `__init__`.
+The `Py.DataClass` attribute is shorthand for
+`Py.ClassAttributes(style = Attributes, init = false)`. It tells Fable to
+generate class-level type annotations (what Pydantic expects) rather than
+instance attributes set in `__init__`.
 
 #### The Decorator Attribute
 
@@ -2530,7 +2598,7 @@ Pydantic's `Field()` function lets you add constraints and metadata to fields.
 The `Fable.Python.Pydantic` module provides typed helpers:
 
 ```fsharp
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Product() =
     inherit BaseModel()
 
@@ -2706,7 +2774,7 @@ type DomainUser = {
 }
 
 /// DTO - uses Python-native types for serialization
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type UserDTO() =
     inherit BaseModel()
     member val Id: string = "" with get, set
@@ -2793,7 +2861,7 @@ FastAPI gives you:
 - **High performance** - One of the fastest Python frameworks available
 - **Automatic validation** - Request/response validation via Pydantic, that you already know from
   the previous chapter
-- **Type hints** - Leverages Python type hints for better editor support
+- **Type hints** - Leverages Python type hints for validation and better editor support
 - **OpenAPI docs** - Interactive Swagger UI and ReDoc generated automatically
 - **Async support** - Native async/await for high concurrency
 
@@ -2836,7 +2904,7 @@ The `app` variable name is important - the route decorators reference it.
 Request and response models use Pydantic's `BaseModel` (covered in the previous chapter):
 
 ```fsharp
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Item(Id: int, Name: string, Price: float, InStock: bool) =
     inherit BaseModel()
     member val Id: int = Id with get, set
@@ -2844,7 +2912,7 @@ type Item(Id: int, Name: string, Price: float, InStock: bool) =
     member val Price: float = Price with get, set
     member val InStock: bool = InStock with get, set
 
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type CreateItemRequest(Name: string, Price: float, InStock: bool) =
     inherit BaseModel()
     member val Name: string = Name with get, set
@@ -3038,7 +3106,7 @@ A request to `/search?q=hello&limit=10` maps to `search("hello", 10)`.
 POST/PUT/PATCH endpoints receive request bodies as Pydantic models:
 
 ```fsharp
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type CreateUserRequest(name: string, email: string) =
     inherit BaseModel()
     member val name: string = name with get, set
@@ -3140,7 +3208,7 @@ open Fable.Python.Pydantic
 let app = FastAPI(title = "Todo API", version = "1.0.0")
 
 // Define the model
-[<Py.ClassAttributes(style = Py.ClassAttributeStyle.Attributes, init = false)>]
+[<Py.DataClass>]
 type Todo(id: int, title: string, completed: bool) =
     inherit BaseModel()
     member val id: int = id with get, set
