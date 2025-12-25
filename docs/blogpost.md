@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-22 14:47 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2025-12-25 08:26 UTC using Fable v5.0.0-alpha.21*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -838,16 +838,23 @@ class DecoratedUser:
 Control how class members are generated for Python frameworks like Pydantic:
 
 ```fsharp
+// BaseModel from Pydantic (import this from Fable.Python.Pydantic in
+// real code to get proper bindings)
+[<Import("BaseModel", "pydantic")>]
+type BaseModel() = class end
+
 [<Py.ClassAttributes(Py.ClassAttributeStyle.Attributes, false)>]
 type PydanticModel() =
+    inherit BaseModel()
     member val Name: string = "" with get, set
     member val Age: int = 0 with get, set
 ```
 
-This generates class-level type annotations suitable for Pydantic:
+This generates class-level type annotations suitable for Pydantic.
+See the Pydantic chapter for more on working with Pydantic models:
 
 ```python
-class PydanticModel:
+class PydanticModel(BaseModel):
     Age: int32 = int32.ZERO
     Name: str = ""
 ```
@@ -3423,13 +3430,7 @@ Utility functions for naming conversion and line classification:
 ```fsharp
 module Utils =
     /// List of contributors to thank (Fable-style).
-    let contributors = [|
-        "@dbrattli"
-        "@alfonsogarciacaro"
-        "@ncave"
-        "@MangelMaxime"
-        "@claude 🤖"
-    |]
+    let contributors = [| "@dbrattli"; "@alfonsogarciacaro"; "@ncave"; "@MangelMaxime"; "@claude 🤖" |]
 
     /// Returns a random contributor from the list.
     let randomContributor () : string =
@@ -3539,7 +3540,8 @@ Parse lines into a document AST
         lines
         |> Seq.fold parseLine initial
         |> flushState
-        |> _.Blocks |> List.rev
+        |> _.Blocks
+        |> List.rev
 ```
 
 ### Transform Module
@@ -3720,7 +3722,8 @@ We've covered a lot of ground in this guide:
 - **Testing**: Running F# code with pytest and other Python test runners
 - **Fable v5**: The latest features including the Rust core and PyPI packages
 - **Pydantic**: Building validated data models with Python's favorite library
-- **Units of Measure**: Compile-time dimensional analysis that vanishes at runtime
+- **FastAPI**: Building type-safe web APIs in the Python ecosystem
+- **Units of Measure**: Compile-time dimensional analysis that vanishes (erased) at runtime
 - **Fable.Literate**: A self-documenting literate programming converter
 
 ### The Punchline
