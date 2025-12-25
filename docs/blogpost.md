@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-22 14:44 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2025-12-22 14:47 UTC using Fable v5.0.0-alpha.21*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -3704,8 +3704,7 @@ python output/Fable.Literate/app.py chapters/introduction.fs > docs/introduction
 ```
 
 That's it! A complete literate programming converter in under 200 lines of F#,
-compiled to Python, processing this very blog post. See
-the [full source](https://github.com/cardamomcode/fable-python/tree/main/Fable.Literate) on GitHub for all the details.
+compiled to Python, processing this very blog post.
 
 ## Summary
 
