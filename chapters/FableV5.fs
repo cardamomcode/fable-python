@@ -70,10 +70,10 @@ a minimum version constraint:
 dependencies = ["fable-library>=5.0.0"]
 ```
 
-For alpha/beta releases, pin the exact version to avoid surprises:
+For pre-release versions, pin the exact version to avoid surprises:
 
 ```toml
-dependencies = ["fable-library==5.0.0a21"]
+dependencies = ["fable-library==5.0.0rc2"]
 ```
 
 This makes dependency management much simpler and follows Python conventions.
@@ -92,17 +92,17 @@ That's **319 new tests** ensuring reliability across the board.
 
 ## Getting Started with Fable v5
 
-To use Fable v5, install the alpha CLI:
+To use Fable v5, install the CLI:
 
 ```bash
 # Install Fable 5 CLI
-dotnet tool install fable --version 5.0.0-alpha.21
+dotnet tool install fable --version 5.0.0-rc.2
 
 # Add Fable.Core to your project
-dotnet add package Fable.Core --version 5.0.0-beta.4
+dotnet add package Fable.Core --version 5.0.0-rc.1
 
 # Install the Python runtime
-uv add fable-library==5.0.0a21
+uv add fable-library==5.0.0rc2
 ```
 
 Then compile your F# to Python:
