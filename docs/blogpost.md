@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2025-12-25 11:07 UTC using Fable v5.0.0-alpha.21*
+*Generated on 2026-03-08 17:54 UTC using Fable v5.0.0-rc.2*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -397,12 +397,12 @@ cd my-fable-python
 # Create F# console app
 dotnet new console -lang F#
 
-# Set up local tools and install Fable 5 (alpha)
+# Set up local tools and install Fable 5
 dotnet new tool-manifest
-dotnet tool install fable --version 5.0.0-alpha.21
+dotnet tool install fable --version 5.0.0-rc.2
 
 # Add Fable.Core package
-dotnet add package Fable.Core --version 5.0.0-beta.4
+dotnet add package Fable.Core --version 5.0.0-rc.1
 ```
 
 ### Install Python Dependencies
@@ -411,17 +411,17 @@ Fable-generated Python code requires the `fable-library` runtime:
 
 ```bash
 # Using uv (recommended)
-uv add "fable-library==5.0.0a21"
+uv add "fable-library==5.0.0rc2"
 
 # Or with pip
-pip install "fable-library==5.0.0a21"
+pip install "fable-library==5.0.0rc2"
 ```
 
 ---
 
 **Note:** Version pinning matters. The fable-library version must match your Fable
-compiler version. Note that PyPI uses `5.0.0a21` format instead of `5.0.0-alpha.21` for
-prerelease alpha releases.
+compiler version. Note that PyPI uses `5.0.0rc2` format instead of `5.0.0-rc.2` for
+prerelease release candidate versions.
 
 ---
 
@@ -1788,10 +1788,8 @@ This generates:
 async def process_item_task(item: str) -> str:
     builder_0040: Any = task()
 
-    def _arrow43(
-        __unit: None = None, item: Any = item
-    ) -> Callable[[FSharpRef[Any]], bool]:
-        def _arrow42(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+    def _arrow43(item: Any = item) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow42(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             return builder_0040.Return(item.upper())
 
         return builder_0040.Bind(delay(int32(100)), _arrow42)
@@ -1870,9 +1868,9 @@ let simpleAsync () =
 In Python, this generates:
 
 ```python
-def simple_async(__unit: None = None) -> Async[int32]:
-    def _arrow52(__unit: None = None) -> Async[int32]:
-        def _arrow51(__unit: None = None) -> Async[int32]:
+def simple_async(__unit: Unit = UNIT) -> Async[int32]:
+    def _arrow52(__unit: Unit = UNIT) -> Async[int32]:
+        def _arrow51(__unit: Unit = UNIT) -> Async[int32]:
             return singleton.Return(int32(42))
 
         return singleton.Bind(sleep(int32(500)), _arrow51)
@@ -1895,11 +1893,11 @@ let simpleTask () =
 In Python, this generates:
 
 ```python
-async def simple_task(__unit: None = None) -> int32:
+async def simple_task(__unit: Unit = UNIT) -> int32:
     builder_0040: Any = task()
 
-    def _arrow54(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
-        def _arrow53(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+    def _arrow54(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow53(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             return builder_0040.Return(int32(42))
 
         return builder_0040.Bind(delay(int32(500)), _arrow53)
@@ -2327,8 +2325,8 @@ project setup:
   <ItemGroup>
     <PackageReference Include="Expecto" Version="10.2.1" />
     <PackageReference Include="Fable.Pyxpecto" Version="2.0.0" />
-    <PackageReference Include="Fable.Core" Version="5.0.0-beta.4" />
-    <PackageReference Include="Fable.Python" Version="5.0.0-alpha.21" />
+    <PackageReference Include="Fable.Core" Version="5.0.0-rc.1" />
+    <PackageReference Include="Fable.Python" Version="5.0.0-rc.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -2467,10 +2465,10 @@ a minimum version constraint:
 dependencies = ["fable-library>=5.0.0"]
 ```
 
-For alpha/beta releases, pin the exact version to avoid surprises:
+For pre-release versions, pin the exact version to avoid surprises:
 
 ```toml
-dependencies = ["fable-library==5.0.0a21"]
+dependencies = ["fable-library==5.0.0rc2"]
 ```
 
 This makes dependency management much simpler and follows Python conventions.
@@ -2489,17 +2487,17 @@ That's **319 new tests** ensuring reliability across the board.
 
 ### Getting Started with Fable v5
 
-To use Fable v5, install the alpha CLI:
+To use Fable v5, install the CLI:
 
 ```bash
 # Install Fable 5 CLI
-dotnet tool install fable --version 5.0.0-alpha.21
+dotnet tool install fable --version 5.0.0-rc.2
 
 # Add Fable.Core to your project
-dotnet add package Fable.Core --version 5.0.0-beta.4
+dotnet add package Fable.Core --version 5.0.0-rc.1
 
 # Install the Python runtime
-uv add fable-library==5.0.0a21
+uv add fable-library==5.0.0rc2
 ```
 
 Then compile your F# to Python:
@@ -2970,7 +2968,7 @@ This generates Python with proper FastAPI decorators:
 class API:
     @app.get("/items")
     @staticmethod
-    def get_items(__unit: None = None) -> list[Item]:
+    def get_items(__unit: Unit = UNIT) -> list[Item]:
         return items
 
     @app.get("/items/{item_id}")
@@ -2978,11 +2976,11 @@ class API:
     async def get_item(item_id: int32) -> Any:
         builder_0040: Any = task()
 
-        def _arrow97(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow97(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             def predicate(i: Item) -> bool:
                 return i.Id == item_id
 
-            match_value: Item | None = try_find(predicate, to_enumerable(items))
+            match_value: Item | None = erase(try_find(predicate, to_enumerable(items)))
             if match_value is None:
                 return builder_0040.Return({"error": "Item not found"})
 
@@ -2997,7 +2995,7 @@ class API:
     async def create_item(request: CreateItemRequest) -> Any:
         builder_0040: Any = task()
 
-        def _arrow99(__unit: None = None) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow99(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             def mapping(i: Item) -> int32:
                 return i.Id
 
@@ -3007,7 +3005,7 @@ class API:
 
             new_item: Item = Item(
                 Id=int32.ONE
-                if (len(items) == int32.ZERO)
+                if (int32(len(items)) == int32.ZERO)
                 else (
                     max(map(mapping, to_enumerable(items)), ObjectExpr98()) + int32.ONE
                 ),
@@ -3718,7 +3716,7 @@ def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
         else:
             return lines[def_index]
 
-    return map(mapping, find_definition_index(symbol, lines))
+    return erase(map(mapping, find_definition_index(symbol, lines)))
 ```
 
 ### Main Entry Point
