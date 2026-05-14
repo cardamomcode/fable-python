@@ -37,15 +37,22 @@ For basic JSON operations, use Python's built-in `json` module:
 
 open Fable.Python.Json
 
-// Serialize F# data to JSON string
+// Serialize F# data to a JSON string
 let data = {|
     name = "Alice"
     age = 30
 |}
 
+let encoded = json.dumps data
+// '{"name": "Alice", "age": 30}'
+
+// Parse a JSON string back to a Python dict
+let decoded = json.loads """{"city": "Oslo", "temp": -5}"""
+
 (**
 Anonymous records (`{| ... |}`) are perfect for JSON - they compile to
-Python dictionaries. See the Compatibility chapter for details on how F#
+Python dictionaries, so `json.dumps` and `json.loads` work directly without
+any conversion layer. See the Compatibility chapter for details on how F#
 types map to Python types.
 
 ## Calling Python Functions

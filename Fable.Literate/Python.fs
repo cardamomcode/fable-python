@@ -89,7 +89,8 @@ let isMultilineDefinition (line: string) : bool =
 /// Extracts the body of a multiline definition.
 let extractMultilineBody (startIndex: int) (defIndex: int) (lines: string array) : string =
     let shouldStop idx (line: string) =
-        idx > defIndex && (isTopLevelDefinition line || isDunderMethod line)
+        idx > defIndex
+        && (isTopLevelDefinition line || isDunderMethod line)
 
     // Start from decorator or definition line
     lines[startIndex..]
