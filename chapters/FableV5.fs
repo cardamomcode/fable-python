@@ -63,17 +63,16 @@ pip install fable-library
 uv add fable-library
 ```
 
-For projects, pin your dependencies in `pyproject.toml`. For stable releases use
-a minimum version constraint:
+For projects, pin your dependencies in `pyproject.toml`:
 
 ```toml
 dependencies = ["fable-library>=5.0.0"]
 ```
 
-For pre-release versions, pin the exact version to avoid surprises:
+To pin an exact version, use:
 
 ```toml
-dependencies = ["fable-library==5.0.0rc2"]
+dependencies = ["fable-library==5.0.0"]
 ```
 
 This makes dependency management much simpler and follows Python conventions.
@@ -96,13 +95,13 @@ To use Fable v5, install the CLI:
 
 ```bash
 # Install Fable 5 CLI
-dotnet tool install fable --version 5.0.0-rc.2
+dotnet tool install fable --version 5.0.0
 
 # Add Fable.Core to your project
-dotnet add package Fable.Core --version 5.0.0-rc.1
+dotnet add package Fable.Core --version 5.0.0
 
 # Install the Python runtime
-uv add fable-library==5.0.0rc2
+uv add fable-library==5.0.0
 ```
 
 Then compile your F# to Python:

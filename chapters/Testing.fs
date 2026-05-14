@@ -222,8 +222,8 @@ project setup:
   <ItemGroup>
     <PackageReference Include="Expecto" Version="10.2.1" />
     <PackageReference Include="Fable.Pyxpecto" Version="2.0.0" />
-    <PackageReference Include="Fable.Core" Version="5.0.0-rc.1" />
-    <PackageReference Include="Fable.Python" Version="5.0.0-rc.2" />
+    <PackageReference Include="Fable.Core" Version="5.0.0" />
+    <PackageReference Include="Fable.Python" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>
