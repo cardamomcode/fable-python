@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2026-05-14 16:09 UTC using Fable v5.0.0*
+*Generated on 2026-05-28 17:23 UTC using Fable v5.0.0*
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
