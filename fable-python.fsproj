@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Core" Version="5.0.0" />
-    <PackageReference Include="Fable.Python" Version="5.1.0" />
+    <PackageReference Include="Fable.Core" Version="5.2.0" />
+    <PackageReference Include="Fable.Python" Version="5.4.0" />
   </ItemGroup>
 
   <ItemGroup>

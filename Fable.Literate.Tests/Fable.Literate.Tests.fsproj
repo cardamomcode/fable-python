@@ -13,8 +13,8 @@
     <PackageReference Include="Fable.Pyxpecto" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.14.3" />
-    <PackageReference Include="Fable.Core" Version="5.0.0" />
-    <PackageReference Include="Fable.Python" Version="5.1.0" />
+    <PackageReference Include="Fable.Core" Version="5.2.0" />
+    <PackageReference Include="Fable.Python" Version="5.4.0" />
   </ItemGroup>
 
   <ItemGroup>
