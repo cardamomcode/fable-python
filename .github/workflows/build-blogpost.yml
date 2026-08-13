@@ -51,7 +51,7 @@ jobs:
 
       - name: Open Pull Request
         if: github.ref == 'refs/heads/main'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "docs: generate blogpost file ${{ github.run_number }}"
           title: "docs: blogpost update"
