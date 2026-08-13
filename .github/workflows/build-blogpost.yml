@@ -11,7 +11,7 @@ jobs:
     if: github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
