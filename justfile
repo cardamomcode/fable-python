@@ -80,7 +80,7 @@ blogpost: build format-python
                 "chapters/${name}.fs" > docs/blogpost.md
             # Insert version banner after the first heading using awk
             awk -v ts="$timestamp" -v fv="$fable_version" \
-                'NR==1 {print; print ""; print "*Generated on " ts " using Fable v" fv "*"; next} {print}' \
+                'NR==1 {print; print ""; print "Generated on " ts " using Fable v" fv; next} {print}' \
                 docs/blogpost.md > docs/blogpost.tmp && mv docs/blogpost.tmp docs/blogpost.md
             first=false
         else

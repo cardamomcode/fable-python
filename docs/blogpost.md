@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2026-05-28 17:23 UTC using Fable v5.0.0*
+Generated on 2026-08-13 21:26 UTC using Fable v5.13.0
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -1794,13 +1794,13 @@ This generates:
 async def process_item_task(item: str) -> str:
     builder_0040: Any = task()
 
-    def _arrow43(item: Any = item) -> Callable[[FSharpRef[Any]], bool]:
-        def _arrow42(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+    def _arrow59(item: Any = item) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow58(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             return builder_0040.Return(item.upper())
 
-        return builder_0040.Bind(delay(int32(100)), _arrow42)
+        return builder_0040.Bind(delay(int32(100)), _arrow58)
 
-    return await builder_0040.Run(builder_0040.Delay(_arrow43))
+    return await builder_0040.Run(builder_0040.Delay(_arrow59))
 ```
 
 Now frameworks like FastAPI can detect and handle these as proper async endpoints.
@@ -1875,13 +1875,13 @@ In Python, this generates:
 
 ```python
 def simple_async(__unit: Unit = UNIT) -> Async[int32]:
-    def _arrow52(__unit: Unit = UNIT) -> Async[int32]:
-        def _arrow51(__unit: Unit = UNIT) -> Async[int32]:
+    def _arrow68(__unit: Unit = UNIT) -> Async[int32]:
+        def _arrow67(__unit: Unit = UNIT) -> Async[int32]:
             return singleton.Return(int32(42))
 
-        return singleton.Bind(sleep(int32(500)), _arrow51)
+        return singleton.Bind(sleep(int32(500)), _arrow67)
 
-    return singleton.Delay(_arrow52)
+    return singleton.Delay(_arrow68)
 ```
 
 #### Tasks → Native async def
@@ -1902,13 +1902,13 @@ In Python, this generates:
 async def simple_task(__unit: Unit = UNIT) -> int32:
     builder_0040: Any = task()
 
-    def _arrow54(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
-        def _arrow53(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+    def _arrow70(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow69(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             return builder_0040.Return(int32(42))
 
-        return builder_0040.Bind(delay(int32(500)), _arrow53)
+        return builder_0040.Bind(delay(int32(500)), _arrow69)
 
-    return await builder_0040.Run(builder_0040.Delay(_arrow54))
+    return await builder_0040.Run(builder_0040.Delay(_arrow70))
 ```
 
 #### Running Tasks from F`#`
@@ -2981,7 +2981,7 @@ class API:
     async def get_item(item_id: int32) -> Any:
         builder_0040: Any = task()
 
-        def _arrow97(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow113(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             def predicate(i: Item) -> bool:
                 return i.Id == item_id
 
@@ -2993,18 +2993,18 @@ class API:
                 item: Item = match_value
                 return builder_0040.Return(item)
 
-        return await builder_0040.Run(builder_0040.Delay(_arrow97))
+        return await builder_0040.Run(builder_0040.Delay(_arrow113))
 
     @app.post("/items")
     @staticmethod
     async def create_item(request: CreateItemRequest) -> Any:
         builder_0040: Any = task()
 
-        def _arrow99(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
+        def _arrow115(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             def mapping(i: Item) -> int32:
                 return i.Id
 
-            class ObjectExpr98:
+            class ObjectExpr114:
                 def Compare(self, x: int32, y: int32) -> int32:
                     return compare_primitives(x, y)
 
@@ -3012,7 +3012,7 @@ class API:
                 Id=int32.ONE
                 if (int32(len(items)) == int32.ZERO)
                 else (
-                    max(map(mapping, to_enumerable(items)), ObjectExpr98()) + int32.ONE
+                    max(map(mapping, to_enumerable(items)), ObjectExpr114()) + int32.ONE
                 ),
                 Name=request.Name,
                 Price=request.Price,
@@ -3021,7 +3021,7 @@ class API:
             (items.append(new_item))
             return builder_0040.Return({"item": new_item, "status": "created"})
 
-        return await builder_0040.Run(builder_0040.Delay(_arrow99))
+        return await builder_0040.Run(builder_0040.Delay(_arrow115))
 ```
 
 #### Key Points
@@ -3712,16 +3712,22 @@ For example, the extractSymbol function in F# generates this Python:
 ```python
 def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
     """Extracts a single symbol definition from Python source lines."""
+    option_1: int32 | None = erase(find_definition_index(symbol, lines))
+    if option_1 is not None:
 
-    def mapping(def_index: int32, lines: Any = lines) -> str:
-        start_index: int32 = find_decorator_start(lines, def_index)
-        if is_multiline_definition(lines[def_index]):
-            return extract_multiline_body(start_index, def_index, lines)
+        def _arrow25(option_1: int32, lines: Any = lines) -> str:
+            def_index: int32 = option_1
+            start_index: int32 = find_decorator_start(lines, def_index)
+            return (
+                extract_multiline_body(start_index, def_index, lines)
+                if is_multiline_definition(lines[def_index])
+                else lines[def_index]
+            )
 
-        else:
-            return lines[def_index]
+        return _arrow25(option_1)
 
-    return erase(map(mapping, find_definition_index(symbol, lines)))
+    else:
+        return None
 ```
 
 ### Main Entry Point
