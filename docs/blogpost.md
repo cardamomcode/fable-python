@@ -1,6 +1,6 @@
 # Introduction to Fable.Python
 
-*Generated on 2026-08-13 21:45 UTC using Fable v5.13.0*.
+*Generated on 2026-09-08 15:25 UTC using Fable v5.16.0*.
 
 > This post is part of the [F# Advent Calendar
 2025](https://sergeytihon.com/2025/11/03/f-advent-calendar-in-english-2025/). Thank you, Sergey Tihon, for organizing
@@ -834,7 +834,7 @@ This generates:
 ```python
 @dataclass
 class DecoratedUser:
-    Age: int32 = int32.ZERO
+    Age: int = 0
     Name: str = ""
 ```
 
@@ -893,7 +893,7 @@ See the Pydantic chapter for more on working with Pydantic models:
 
 ```python
 class PydanticModel(BaseModel):
-    Age: int32 = int32.ZERO
+    Age: int = 0
     Name: str = ""
 ```
 
@@ -1392,13 +1392,11 @@ greeting: str = "Hello, Python!"
 
 is_enabled: bool = True
 
-coordinates: tuple[float64, float64] = (float64(10.5), float64(20.3))
+coordinates: tuple[float, float] = (10.5, 20.3)
 
-numbers: FSharpList[int32] = of_array(
-    Array[int32]([int32.ONE, int32.TWO, int32.THREE, int32.FOUR, int32.FIVE])
-)
+numbers: FSharpList[int] = of_array(Array[int]([1, 2, 3, 4, 5]))
 
-mutable_list: list[int32] = []
+mutable_list: list[int] = []
 ```
 
 Each of these F# values compiles to its Python equivalent. Strings become `str`,
@@ -1465,7 +1463,7 @@ let person = {
 @dataclass(eq=False, repr=False, slots=True)
 class Person(Record):
     name: str
-    age: int32
+    age: int
     email: str | None
 ```
 
@@ -1561,12 +1559,10 @@ let processed =
 We can see that the mapping becomes a separate function in the generated Python code.
 
 ```python
-def mapping(x_1: int32) -> int32:
-    return x_1 * x_1
+def mapping(x_1: int) -> int:
+    return int32(x_1 * x_1)
 
-processed: FSharpList[int32] = map(
-    mapping, of_array(Array[int32]([int32.ONE, int32.TWO, int32.THREE]))
-)
+processed: FSharpList[int] = map(mapping, of_array(Array[int]([1, 2, 3])))
 ```
 
 #### Numeric Types
@@ -1607,11 +1603,11 @@ let huge: bigint = 999999999999999999999999999999I
 This generates:
 
 ```python
-small: int32 = int32(42)
+small: int = 42
 
 big: int = 12345678901234567890
 
-wrapped: int32 = max_int + int32.ONE
+wrapped: int = (max_int + 1) if (max_int <= 2147483646) else int32(max_int + 1)
 
 huge: int = 999999999999999999999999999999
 ```
@@ -1799,7 +1795,7 @@ async def process_item_task(item: str) -> str:
         def _arrow58(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
             return builder_0040.Return(item.upper())
 
-        return builder_0040.Bind(delay(int32(100)), _arrow58)
+        return builder_0040.Bind(delay(100), _arrow58)
 
     return await builder_0040.Run(builder_0040.Delay(_arrow59))
 ```
@@ -1875,12 +1871,12 @@ let simpleAsync () =
 In Python, this generates:
 
 ```python
-def simple_async(__unit: Unit = UNIT) -> Async[int32]:
-    def _arrow68(__unit: Unit = UNIT) -> Async[int32]:
-        def _arrow67(__unit: Unit = UNIT) -> Async[int32]:
-            return singleton.Return(int32(42))
+def simple_async(__unit: Unit = UNIT) -> Async[int]:
+    def _arrow68(__unit: Unit = UNIT) -> Async[int]:
+        def _arrow67(__unit: Unit = UNIT) -> Async[int]:
+            return singleton.Return(42)
 
-        return singleton.Bind(sleep(int32(500)), _arrow67)
+        return singleton.Bind(sleep(500), _arrow67)
 
     return singleton.Delay(_arrow68)
 ```
@@ -1900,14 +1896,14 @@ let simpleTask () =
 In Python, this generates:
 
 ```python
-async def simple_task(__unit: Unit = UNIT) -> int32:
+async def simple_task(__unit: Unit = UNIT) -> int:
     builder_0040: Any = task()
 
     def _arrow70(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
         def _arrow69(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
-            return builder_0040.Return(int32(42))
+            return builder_0040.Return(42)
 
-        return builder_0040.Bind(delay(int32(500)), _arrow69)
+        return builder_0040.Bind(delay(500), _arrow69)
 
     return await builder_0040.Run(builder_0040.Delay(_arrow70))
 ```
@@ -2581,7 +2577,7 @@ This generates:
 @dataclass(eq=False, repr=False, slots=True)
 class Person(Record):
     name: str
-    age: int32
+    age: int
 ```
 
 You can pass parameters to decorators:
@@ -2979,7 +2975,7 @@ class API:
 
     @app.get("/items/{item_id}")
     @staticmethod
-    async def get_item(item_id: int32) -> Any:
+    async def get_item(item_id: int) -> Any:
         builder_0040: Any = task()
 
         def _arrow113(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
@@ -3002,18 +2998,29 @@ class API:
         builder_0040: Any = task()
 
         def _arrow115(__unit: Unit = UNIT) -> Callable[[FSharpRef[Any]], bool]:
-            def mapping(i: Item) -> int32:
+            def mapping(i: Item) -> int:
                 return i.Id
 
             class ObjectExpr114:
-                def Compare(self, x: int32, y: int32) -> int32:
+                def Compare(self, x: int, y: int) -> int:
                     return compare_primitives(x, y)
 
             new_item: Item = Item(
-                Id=int32.ONE
-                if (int32(len(items)) == int32.ZERO)
+                Id=1
+                if (len(items) == 0)
                 else (
-                    max(map(mapping, to_enumerable(items)), ObjectExpr114()) + int32.ONE
+                    tmp
+                    if (
+                        -2147483648
+                        <= (
+                            tmp := max(
+                                map(mapping, to_enumerable(items)), ObjectExpr114()
+                            )
+                            + 1
+                        )
+                        <= 2147483647
+                    )
+                    else int32(tmp)
                 ),
                 Name=request.Name,
                 Price=request.Price,
@@ -3713,12 +3720,12 @@ For example, the extractSymbol function in F# generates this Python:
 ```python
 def extract_symbol(symbol: str, lines: Array[str]) -> str | None:
     """Extracts a single symbol definition from Python source lines."""
-    option_1: int32 | None = erase(find_definition_index(symbol, lines))
+    option_1: int | None = erase(find_definition_index(symbol, lines))
     if option_1 is not None:
 
-        def _arrow25(option_1: int32, lines: Any = lines) -> str:
-            def_index: int32 = option_1
-            start_index: int32 = find_decorator_start(lines, def_index)
+        def _arrow25(option_1: int, lines: Any = lines) -> str:
+            def_index: int = option_1
+            start_index: int = find_decorator_start(lines, def_index)
             return (
                 extract_multiline_body(start_index, def_index, lines)
                 if is_multiline_definition(lines[def_index])
